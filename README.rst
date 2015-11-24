@@ -18,3 +18,27 @@ Install
 ::
 
     pip install kinto-changes
+
+Setup
+-----
+
+In the Kinto-based application settings:
+
+::
+
+    kinto.includes = kinto_changes
+
+    kinto.event_listeners = kinto_changes.listener
+    kinto.event_listeners.changes.resources = <list of resource names>
+    kinto.event_listeners.changes.collections = <list of collections names and patterns>
+
+
+For example, in `Kinto <http://kinto.readthedocs.org/>`_, to be notified of
+record updates per collection:
+
+::
+
+    kinto.event_listeners.changes.resources = record
+    kinto.event_listeners.changes.collections =
+        blocklists:certificates
+        settings:*
