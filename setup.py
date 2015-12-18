@@ -15,11 +15,13 @@ with open('CHANGELOG.rst') as history_file:
     history = history_file.read()
 
 requirements = [
-    'cliquet>=2.11'
+    'kinto>=1.10'
 ]
 
 test_requirements = [
-    # TODO: put package test requirements here
+    'mock',
+    'unittest2',
+    'webtest',
 ]
 
 setup(
