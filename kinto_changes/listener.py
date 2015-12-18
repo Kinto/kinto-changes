@@ -9,11 +9,13 @@ from cliquet.storage import exceptions as storage_exceptions
 
 
 class Listener(ListenerBase):
-    def __init__(self, collections, changes_bucket, changes_collection):
+    def __init__(self, collections, changes_bucket, changes_collection,
+                 changes_principals):
         super(Listener, self).__init__()
         self.collections = set(collections)
         self.changes_bucket = changes_bucket
         self.changes_collection = changes_collection
+        self.changes_principals = changes_principals
 
     def __call__(self, event):
         registry = event.request.registry
@@ -46,9 +48,8 @@ class Listener(ListenerBase):
             registry.storage.create(collection_id='collection',
                                     parent_id=bucket_id,
                                     record={'id': self.changes_collection})
-            registry.permission.add_principal_to_ace(collection_id,
-                                                     'read',
-                                                     Everyone)
+            registry.permission.replace_object_permissions(
+                collection_id, {'read': self.changes_principals})
         except storage_exceptions.UnicityError:
             pass
 
@@ -83,5 +84,7 @@ def load_from_config(config, prefix=''):
 
     changes_bucket = settings.get(prefix + 'bucket', 'monitor')
     changes_collection = settings.get(prefix + 'collection', 'changes')
+    changes_principals = aslist(settings.get(prefix + 'principals', Everyone))
 
-    return Listener(collections, changes_bucket, changes_collection)
+    return Listener(collections, changes_bucket, changes_collection,
+                    changes_principals)

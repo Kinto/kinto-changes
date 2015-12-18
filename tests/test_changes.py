@@ -36,14 +36,19 @@ class UpdateChangesTest(BaseWebTest, unittest.TestCase):
                            headers=self.headers)
         self.app.get(self.changes_uri, headers=self.headers, status=200)
 
-    def test_changes_records_permissions_can_be_specified_in_settings(self):
-        pass
-
-    def test_changes_bucket_and_collection_can_be_specified_in_settings(self):
-        pass
-
     def test_only_collections_specified_in_settings_are_monitored(self):
-        pass
+        resp = self.app.get(self.changes_uri, headers=self.headers)
+        change_record = resp.json['data'][0]
+        records_uri = '/buckets/default/collections/certificates/records'
+
+        self.app.post_json(records_uri, SAMPLE_RECORD,
+                           headers=self.headers)
+
+        resp = self.app.get(self.changes_uri, headers=self.headers)
+        after = resp.json['data'][0]
+        self.assertEqual(change_record['id'], after['id'])
+        self.assertEqual(change_record['last_modified'],
+                         after['last_modified'])
 
     def test_changes_bucket_last_modified_is_not_updated(self):
         resp = self.app.get('/buckets/monitor', headers=self.headers)
@@ -104,3 +109,25 @@ class UpdateChangesTest(BaseWebTest, unittest.TestCase):
         change = resp.json['data'][0]
         self.assertEqual(change['bucket'], 'blocklists')
         self.assertEqual(change['collection'], 'certificates')
+
+
+class UpdateConfiguredChangesTest(BaseWebTest, unittest.TestCase):
+    config = 'mozilla.ini'
+    changes_uri = '/buckets/mozilla/collections/updates/records'
+    records_uri = '/buckets/blocklists/collections/certificates/records'
+
+    def setUp(self):
+        super(UpdateConfiguredChangesTest, self).setUp()
+        # XXX: should happen during Listener instanciation or includeme()
+        self.app.post_json(self.records_uri,
+                           SAMPLE_RECORD,
+                           headers=self.headers)
+
+    def test_changes_bucket_and_collection_can_be_specified_in_settings(self):
+        resp = self.app.get(self.changes_uri, headers=self.headers)
+        self.assertEquals(len(resp.json['data']), 1)
+
+    def test_changes_records_permissions_can_be_specified_in_settings(self):
+        resp = self.app.get('/buckets/mozilla/collections/updates',
+                            headers=self.headers)
+        self.assertIn('user:natim', resp.json['permissions']['read'])

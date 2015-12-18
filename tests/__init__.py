@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import os
-import uuid
 
 import webtest
 from cliquet.tests import support as cliquet_support
