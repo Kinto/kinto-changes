@@ -18,3 +18,31 @@ Install
 ::
 
     pip install kinto-changes
+
+Setup
+-----
+
+In the Kinto-based application settings:
+
+::
+
+    kinto.http_host = website.domain.tld
+
+    kinto.includes = kinto_changes
+
+    kinto.event_listeners = changes
+    kinto.event_listeners.changes.use = kinto_changes.listener
+    kinto.event_listeners.changes.resources = <list of resource ids>
+    kinto.event_listeners.changes.collections = <list of collections names and patterns>
+    kinto.event_listeners.changes.principals = <list of principals allowed to read the changes>
+
+
+For example, in `Kinto <http://kinto.readthedocs.org/>`_, to be notified of
+record updates per collection:
+
+::
+
+    kinto.event_listeners.changes.resources = record
+    kinto.event_listeners.changes.collections =
+        /buckets/blocklists/collections/certificates
+        /buckets/settings
