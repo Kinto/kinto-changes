@@ -1,6 +1,7 @@
 import hashlib
 import six
 from uuid import UUID
+
 from pyramid.security import Everyone
 from pyramid.settings import aslist
 from cliquet.listeners import ListenerBase
@@ -52,6 +53,11 @@ class Listener(ListenerBase):
             pass
 
         # Create the new record
+        #
+        # The record_id is always the same for a given
+        # bucket/collection couple. This means the change record will
+        # be updated for each record update on a collection.
+
         identifier = hashlib.md5(collection_uri.encode('utf-8')).hexdigest()
         record_id = six.text_type(UUID(identifier))
         last_modified = registry.storage.collection_timestamp(

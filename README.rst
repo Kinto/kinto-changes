@@ -26,10 +26,13 @@ In the Kinto-based application settings:
 
 ::
 
+    kinto.http_host = website.domain.tld
+
     kinto.includes = kinto_changes
 
-    kinto.event_listeners = kinto_changes.listener
-    kinto.event_listeners.changes.resources = <list of resource names>
+    kinto.event_listeners = changes
+    kinto.event_listeners.changes.use = kinto_changes.listener
+    kinto.event_listeners.changes.resources = <list of resource ids>
     kinto.event_listeners.changes.collections = <list of collections names and patterns>
 
 
@@ -40,5 +43,5 @@ record updates per collection:
 
     kinto.event_listeners.changes.resources = record
     kinto.event_listeners.changes.collections =
-        blocklists:certificates
-        settings:*
+        /buckets/blocklists/collections/certificates
+        /buckets/settings

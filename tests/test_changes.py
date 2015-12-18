@@ -94,7 +94,7 @@ class UpdateChangesTest(BaseWebTest, unittest.TestCase):
 
         resp = self.app.get(self.changes_uri, headers=self.headers)
         change = resp.json['data'][0]
-        self.assertEqual(change['host'], 'https://kinto.com')
+        self.assertEqual(change['host'], 'www.kinto-storage.org')
 
     def test_change_record_has_bucket_and_collection_attributes(self):
         self.app.post_json(self.records_uri, SAMPLE_RECORD,
