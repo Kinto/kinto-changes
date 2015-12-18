@@ -4,6 +4,7 @@ from uuid import UUID
 from pyramid.security import Everyone
 from pyramid.settings import aslist
 from cliquet.listeners import ListenerBase
+from cliquet.storage import exceptions as storage_exceptions
 
 
 class Listener(ListenerBase):
@@ -16,63 +17,56 @@ class Listener(ListenerBase):
     def __call__(self, event):
         registry = event.request.registry
 
-        bucket_id = event.payload['bucket_id']
-        collection_id = event.payload['collection_id']
-        bucket_uri = '/buckets/%s' % bucket_id
-        collection_uri = u'/buckets/%s/collections/%s' % (bucket_id,
-                                                          collection_id)
+        bucket = event.payload['bucket_id']
+        collection = event.payload['collection_id']
+        bucket_uri = '/buckets/%s' % bucket
+        collection_uri = u'/buckets/%s/collections/%s' % (bucket,
+                                                          collection)
 
         collections_uris = {bucket_uri, collection_uri}
         is_matching = collections_uris.intersection(self.collections)
         if self.collections and not is_matching:
             return
 
-        identifier = hashlib.md5(collection_uri.encode('utf-8')).hexdigest()
-        record_id = six.text_type(UUID(identifier))
+        bucket_id = '/buckets/%s' % self.changes_bucket
+        collection_id = '/buckets/%s/collections/%s' % (
+            self.changes_bucket, self.changes_collection)
 
-        records = event.impacted_records
-        last_modified = 0
+        try:
+            # Make sure the monitor bucket exists
+            registry.storage.create(collection_id='bucket',
+                                    parent_id='',
+                                    record={'id': self.changes_bucket})
+        except storage_exceptions.UnicityError:
+            pass
 
-        for record in records:
-            if 'new' in record:
-                # In case we create or update a record.
-                record_last_modified = record['new']['last_modified']
-            else:
-                # In case we delete a record.
-                record_last_modified = record['old']['last_modified']
-
-            if record_last_modified > last_modified:
-                last_modified = record_last_modified
-
-        # Make sure the monitor bucket exists
-        registry.storage.update(
-            parent_id='',
-            collection_id='bucket',
-            object_id=self.changes_bucket,
-            record={})
-
-        # Make sure the changes collection exists
-        parent_id = '/buckets/%s' % self.changes_bucket
-        registry.storage.update(
-            parent_id=parent_id,
-            collection_id='collection',
-            object_id=self.changes_collection,
-            record={})
+        try:
+            # Make sure the changes collection exists
+            registry.storage.create(collection_id='collection',
+                                    parent_id=bucket_id,
+                                    record={'id': self.changes_collection})
+            registry.permission.add_principal_to_ace(collection_id,
+                                                     'read',
+                                                     Everyone)
+        except storage_exceptions.UnicityError:
+            pass
 
         # Create the new record
-        parent_id = '/buckets/%s/collections/%s' % (self.changes_bucket,
-                                                    self.changes_collection)
-        registry.permission.add_principal_to_ace(parent_id, 'read', Everyone)
+        identifier = hashlib.md5(collection_uri.encode('utf-8')).hexdigest()
+        record_id = six.text_type(UUID(identifier))
+        last_modified = registry.storage.collection_timestamp(
+            parent_id=collection_uri, collection_id='record')
+
         registry.storage.update(
-            parent_id=parent_id,
+            parent_id=collection_id,
             collection_id='record',
             object_id=record_id,
             record={
                 'id': record_id,
                 'last_modified': last_modified,
                 'host': registry.settings.get('http_host'),
-                'bucket': bucket_id,
-                'collection': collection_id
+                'bucket': bucket,
+                'collection': collection
             })
 
 
