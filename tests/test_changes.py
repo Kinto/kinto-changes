@@ -30,6 +30,15 @@ class UpdateChangesTest(BaseWebTest, unittest.TestCase):
         self.assertNotEqual(change_record['last_modified'],
                             after['last_modified'])
 
+    def test_collection_on_different_host_do_not_have_the_same_id(self):
+        self.app.post_json(self.records_uri, SAMPLE_RECORD,
+                           headers=self.headers)
+        self.app.app.registry.settings['http_host'] = 'another.host.com'
+        self.app.post_json(self.records_uri, SAMPLE_RECORD,
+                           headers=self.headers)
+        resp = self.app.get(self.changes_uri, headers=self.headers)
+        self.assertEquals(len(resp.json['data']), 2)
+
     def test_changes_bucket_and_collection_are_created_automatically(self):
         self.app.delete('/buckets/monitor', headers=self.headers)
         self.app.post_json(self.records_uri, SAMPLE_RECORD,

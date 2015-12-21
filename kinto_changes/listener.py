@@ -62,7 +62,9 @@ class Listener(ListenerBase):
         # bucket/collection couple. This means the change record will
         # be updated for each record update on a collection.
 
-        identifier = hashlib.md5(collection_uri.encode('utf-8')).hexdigest()
+        host = registry.settings.get('http_host')
+        uniqueid = '%s%s' % (host, collection_uri)
+        identifier = hashlib.md5(uniqueid.encode('utf-8')).hexdigest()
         record_id = six.text_type(UUID(identifier))
         last_modified = registry.storage.collection_timestamp(
             parent_id=collection_uri, collection_id='record')
@@ -74,7 +76,7 @@ class Listener(ListenerBase):
             record={
                 'id': record_id,
                 'last_modified': last_modified,
-                'host': registry.settings.get('http_host'),
+                'host': host,
                 'bucket': bucket,
                 'collection': collection
             })
