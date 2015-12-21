@@ -12,7 +12,8 @@ Kinto Changes
 collection timestamps into a specific bucket and collection.
 
 
-This plugin is useful to allow polling of several collections in one HTTP request.
+This plugin is useful to allow for polling on several collections
+changes with one HTTP request.
 
 
 Install
