@@ -8,8 +8,12 @@ Kinto Changes
 .. image:: https://img.shields.io/pypi/v/kinto-changes.svg
         :target: https://pypi.python.org/pypi/kinto-changes
 
-**proof-of-concept**: Plug `Cliquet notifications <http://cliquet.readthedocs.org/en/latest/reference/notifications.html>`_
- to keep track of modified collections.
+**proof-of-concept**: Track modifications of records in Kinto and store the
+collection timestamps into a specific bucket and collection.
+
+
+This plugin is useful to allow for polling on several collections
+changes with one HTTP request.
 
 
 Install
@@ -22,27 +26,68 @@ Install
 Setup
 -----
 
-In the Kinto-based application settings:
+In the `Kinto <http://kinto.readthedocs.org/>`_ settings:
 
 ::
-
-    kinto.http_host = website.domain.tld
 
     kinto.includes = kinto_changes
 
     kinto.event_listeners = changes
     kinto.event_listeners.changes.use = kinto_changes.listener
-    kinto.event_listeners.changes.resources = <list of resource ids>
-    kinto.event_listeners.changes.collections = <list of collections names and patterns>
-    kinto.event_listeners.changes.principals = <list of principals allowed to read the changes>
 
 
-For example, in `Kinto <http://kinto.readthedocs.org/>`_, to be notified of
-record updates per collection:
+Now everytime a record is modified, the list of current timestamps is available
+at ``GET /v1/buckets/monitor/collections/changes/records``.
+
+
+Filter collections
+''''''''''''''''''
+
+It is possible to choose which collections are monitored:
 
 ::
 
-    kinto.event_listeners.changes.resources = record
+    kinto.event_listeners.changes.collections = <list of URIs>
+
+For example, to be notified of record updates in the ``certificates`` collection,
+or every collections of the ``settings`` bucket:
+
+::
+
     kinto.event_listeners.changes.collections =
         /buckets/blocklists/collections/certificates
         /buckets/settings
+
+
+Permissions
+'''''''''''
+
+By default the list of timestamps is readable by everyone. The list of authorized
+principals can be specified in settings:
+
+::
+
+    kinto.event_listeners.changes.principals =
+        system.Authenticated
+        group:admins
+        twitter:@natim
+
+
+Advanced options
+''''''''''''''''
+
+By default, the list of timestamps is available in the ``changes`` collection in
+the ``monitor`` bucket. This can be specified in settings:
+
+::
+
+    kinto.event_listeners.changes.bucket = monitor
+    kinto.event_listeners.changes.collection = changes
+
+
+If specified in settings, the changes will have a ``http_host`` attribute.
+This can be used to distinguish changes from several Kinto instances.
+
+::
+
+    kinto.http_host = website.domain.tld

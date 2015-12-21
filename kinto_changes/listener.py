@@ -20,6 +20,9 @@ class Listener(ListenerBase):
     def __call__(self, event):
         registry = event.request.registry
 
+        if event.payload['resource_name'] != 'record':
+            return
+
         bucket = event.payload['bucket_id']
         collection = event.payload['collection_id']
         bucket_uri = '/buckets/%s' % bucket
@@ -80,7 +83,7 @@ class Listener(ListenerBase):
 def load_from_config(config, prefix=''):
     settings = config.get_settings()
 
-    collections = aslist(settings[prefix + 'collections'])
+    collections = aslist(settings.get(prefix + 'collections', ''))
 
     changes_bucket = settings.get(prefix + 'bucket', 'monitor')
     changes_collection = settings.get(prefix + 'collection', 'changes')
