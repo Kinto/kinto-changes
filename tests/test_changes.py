@@ -1,6 +1,6 @@
 from cliquet.tests.support import unittest
 
-from . import BaseWebTest
+from . import BaseWebTest, get_user_headers
 
 
 SAMPLE_RECORD = {'data': {'dev-edition': True}}
@@ -35,6 +35,11 @@ class UpdateChangesTest(BaseWebTest, unittest.TestCase):
         self.app.post_json(self.records_uri, SAMPLE_RECORD,
                            headers=self.headers)
         self.app.get(self.changes_uri, headers=self.headers, status=200)
+
+    def test_changes_is_readable_by_everyone_by_default(self):
+        headers = self.headers.copy()
+        del headers['Authorization']
+        self.app.get(self.changes_uri, headers=headers, status=200)
 
     def test_only_collections_specified_in_settings_are_monitored(self):
         resp = self.app.get(self.changes_uri, headers=self.headers)
@@ -113,21 +118,28 @@ class UpdateChangesTest(BaseWebTest, unittest.TestCase):
 
 class UpdateConfiguredChangesTest(BaseWebTest, unittest.TestCase):
     config = 'mozilla.ini'
-    changes_uri = '/buckets/mozilla/collections/updates/records'
-    records_uri = '/buckets/blocklists/collections/certificates/records'
 
     def setUp(self):
         super(UpdateConfiguredChangesTest, self).setUp()
-        # XXX: should happen during Listener instanciation or includeme()
-        self.app.post_json(self.records_uri,
+        records_uri = '/buckets/default/collections/certificates/records'
+        self.app.post_json(records_uri,
                            SAMPLE_RECORD,
                            headers=self.headers)
 
     def test_changes_bucket_and_collection_can_be_specified_in_settings(self):
-        resp = self.app.get(self.changes_uri, headers=self.headers)
+        # See mozilla.ini
+        changes_uri = '/buckets/mozilla/collections/updates/records'
+        resp = self.app.get(changes_uri, headers=self.headers)
         self.assertEquals(len(resp.json['data']), 1)
 
     def test_changes_records_permissions_can_be_specified_in_settings(self):
         resp = self.app.get('/buckets/mozilla/collections/updates',
                             headers=self.headers)
         self.assertIn('user:natim', resp.json['permissions']['read'])
+
+    def test_changes_records_are_not_readable_for_unauthorized(self):
+        headers = self.headers.copy()
+        headers.update(**get_user_headers('tartampion'))
+        self.app.get('/buckets/mozilla/collections/updates/records',
+                     headers=headers,
+                     status=403)
