@@ -124,6 +124,18 @@ class UpdateChangesTest(BaseWebTest, unittest.TestCase):
         self.assertEqual(change['bucket'], 'blocklists')
         self.assertEqual(change['collection'], 'certificates')
 
+    def test_changes_capability_exposed(self):
+        resp = self.app.get('/')
+        capabilities = resp.json['capabilities']
+        self.assertIn('changes', capabilities)
+        expected = {
+            "description": "Track modifications of records in Kinto and store "
+                           "the collection timestamps into a specific bucket "
+                           "and collection.",
+            "url": "http://kinto.readthedocs.org/en/latest/api/1.x/"
+                   "synchronisation.html#polling-for-remote-changes"
+        }
+        self.assertEqual(expected, capabilities['changes'])
 
 class UpdateConfiguredChangesTest(BaseWebTest, unittest.TestCase):
     config = 'mozilla.ini'
