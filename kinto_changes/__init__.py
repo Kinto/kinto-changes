@@ -1,5 +1,4 @@
 def includeme(config):
-    pass
     config.add_api_capability(
         "changes",
         description="Track modifications of records in Kinto and store"
