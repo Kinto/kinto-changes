@@ -8,6 +8,11 @@ Kinto Changes
 .. image:: https://img.shields.io/pypi/v/kinto-changes.svg
         :target: https://pypi.python.org/pypi/kinto-changes
 
+.. |master-coverage| image::
+    https://coveralls.io/repos/Kinto/kinto-changes/badge.svg?branch=master
+    :alt: Coverage
+    :target: https://coveralls.io/r/Kinto/kinto-changes
+
 **kinto-changes** tracks modifications of records in Kinto and stores the
 collection timestamps into a specific bucket and collection.
 
