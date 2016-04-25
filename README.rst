@@ -8,9 +8,8 @@ Kinto Changes
 .. image:: https://img.shields.io/pypi/v/kinto-changes.svg
         :target: https://pypi.python.org/pypi/kinto-changes
 
-**proof-of-concept**: Track modifications of records in Kinto and store the
+**kinto-changes** tracks modifications of records in Kinto and stores the
 collection timestamps into a specific bucket and collection.
-
 
 This plugin is useful to allow for polling on several collections
 changes with one HTTP request.
@@ -62,8 +61,8 @@ or every collections of the ``settings`` bucket:
 Permissions
 '''''''''''
 
-By default the list of timestamps is readable by everyone. The list of authorized
-principals can be specified in settings:
+By default the list of timestamps is readable by anonymous users (``system.Everyone``).
+But the list of authorized principals can be specified in settings:
 
 ::
 
