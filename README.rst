@@ -28,7 +28,7 @@ Install
 Setup
 -----
 
-In the `Kinto <http://kinto.readthedocs.org/>`_ settings:
+In the `Kinto <http://kinto.readthedocs.io/>`_ settings:
 
 ::
 
