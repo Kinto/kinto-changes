@@ -5,7 +5,8 @@ Changelog
 0.3.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Update to ``kinto.core`` for compatibility with Kinto 3.0. This
+  release is no longer compatible with Kinto < 3.0, please upgrade!
 
 
 0.2.0 (2016-04-25)

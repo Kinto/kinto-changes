@@ -4,8 +4,8 @@ from uuid import UUID
 
 from pyramid.security import Everyone
 from pyramid.settings import aslist
-from cliquet.listeners import ListenerBase
-from cliquet.storage import exceptions as storage_exceptions
+from kinto.core.listeners import ListenerBase
+from kinto.core.storage import exceptions as storage_exceptions
 
 
 class Listener(ListenerBase):
