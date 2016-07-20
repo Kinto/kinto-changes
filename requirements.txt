@@ -7,7 +7,6 @@ futures==3.0.5
 iso8601==0.1.11
 jsonschema==2.5.1
 kinto==3.3.1
--e git+git@github.com:Kinto/kinto-changes.git@a08bdabf071879a64ba96f35b50fd831631526a2#egg=kinto_changes
 PasteDeploy==1.5.2
 pyramid==1.7
 pyramid-multiauth==0.8.0
