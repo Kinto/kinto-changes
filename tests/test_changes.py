@@ -1,5 +1,6 @@
 from kinto.tests.core.support import unittest
 
+from kinto_changes import __version__ as changes_version
 from . import BaseWebTest, get_user_headers
 
 
@@ -129,6 +130,7 @@ class UpdateChangesTest(BaseWebTest, unittest.TestCase):
         capabilities = resp.json['capabilities']
         self.assertIn('changes', capabilities)
         expected = {
+            "version": changes_version,
             "description": "Track modifications of records in Kinto and store "
                            "the collection timestamps into a specific bucket "
                            "and collection.",
