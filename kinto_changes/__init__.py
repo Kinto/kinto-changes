@@ -7,7 +7,8 @@ __version__ = pkg_resources.get_distribution(__package__).version
 
 def includeme(config):
     settings = config.get_settings()
-    resources = aslist(settings.get('event_listeners.changes.collections', []))
+    collections = aslist(settings.get(
+        'event_listeners.changes.collections', []))
 
     config.add_api_capability(
         "changes",
@@ -17,4 +18,4 @@ def includeme(config):
                     " and collection.",
         url="http://kinto.readthedocs.io/en/latest/tutorials/"
         "synchronisation.html#polling-for-remote-changes",
-        resources=resources)
+        collections=collections)

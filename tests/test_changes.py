@@ -134,7 +134,7 @@ class UpdateChangesTest(BaseWebTest, unittest.TestCase):
             "description": "Track modifications of records in Kinto and store "
                            "the collection timestamps into a specific bucket "
                            "and collection.",
-            "resources": [u'/buckets/blocklists'],
+            "collections": [u'/buckets/blocklists'],
             "url": "http://kinto.readthedocs.io/en/latest/tutorials/"
                    "synchronisation.html#polling-for-remote-changes"
         }
