@@ -1,41 +1,37 @@
 # -*- coding: utf-8 -*-
 import os
+try:
+    import ConfigParser as configparser
+except ImportError:
+    import configparser
 
-import webtest
-from kinto.tests.core import support as core_support
-from kinto.core import utils as core_utils
-
-
-def get_user_headers(user):
-    credentials = "%s:secret" % user
-    authorization = 'Basic {0}'.format(core_utils.encode64(credentials))
-    return {
-        'Authorization': authorization
-    }
+from kinto import main as kinto_main
+from kinto.core.testing import get_user_headers, BaseWebTest as CoreWebTest
 
 
-class BaseWebTest(object):
+here = os.path.abspath(os.path.dirname(__file__))
+
+
+class BaseWebTest(CoreWebTest):
+    api_prefix = "v1"
+    entry_point = kinto_main
     config = 'config.ini'
 
     def __init__(self, *args, **kwargs):
         super(BaseWebTest, self).__init__(*args, **kwargs)
-        self.app = self.make_app()
+        self.headers.update(get_user_headers('mat'))
+        self.headers.update({'Origin': 'http://localhost:9999'})
+
+    def get_app_settings(self, extras=None):
+        ini_path = os.path.join(here, self.config)
+        config = configparser.ConfigParser()
+        config.read(ini_path)
+        settings = dict(config.items('app:main'))
+        return settings
 
     def setUp(self):
         super(BaseWebTest, self).setUp()
-        self.headers = {
-            'Content-Type': 'application/json',
-            'Origin': 'http://localhost:9999'
-        }
-        self.headers.update(get_user_headers('mat'))
-
         self.create_collection('blocklists', 'certificates')
-
-    def make_app(self):
-        curdir = os.path.dirname(os.path.realpath(__file__))
-        app = webtest.TestApp("config:%s" % self.config, relative_to=curdir)
-        app.RequestClass = core_support.get_request_class(prefix="v1")
-        return app
 
     def create_collection(self, bucket_id, collection_id):
         bucket_uri = '/buckets/%s' % bucket_id

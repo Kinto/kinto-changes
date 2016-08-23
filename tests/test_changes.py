@@ -1,4 +1,4 @@
-from kinto.tests.core.support import unittest
+import unittest
 
 from kinto_changes import __version__ as changes_version
 from . import BaseWebTest, get_user_headers
