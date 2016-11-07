@@ -168,3 +168,9 @@ class UpdateConfiguredChangesTest(BaseWebTest, unittest.TestCase):
         self.app.get('/buckets/mozilla/collections/updates/records',
                      headers=headers,
                      status=403)
+
+    def test_change_record_has_specific_server_host(self):
+        changes_uri = '/buckets/mozilla/collections/updates/records'
+        resp = self.app.get(changes_uri, headers=self.headers)
+        self.assertEqual(resp.json['data'][0]['host'],
+                         'firefox.settings.services.mozilla.com')

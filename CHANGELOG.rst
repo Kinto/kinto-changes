@@ -5,8 +5,9 @@ Changelog
 0.4.0 (unreleased)
 ------------------
 
-- Add the plugin version in the capability.
-
+- Add the plugin version in the capability (#20)
+- Add collections in the capability (#18)
+- Add a specific setting to override global ``http_host`` value (#24)
 
 0.3.0 (2016-05-19)
 ------------------
