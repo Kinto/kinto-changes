@@ -2,7 +2,7 @@
 import os
 
 import webtest
-from kinto.tests.core import support as core_support
+from kinto.core.testing import get_request_class
 from kinto.core import utils as core_utils
 
 
@@ -34,7 +34,7 @@ class BaseWebTest(object):
     def make_app(self):
         curdir = os.path.dirname(os.path.realpath(__file__))
         app = webtest.TestApp("config:%s" % self.config, relative_to=curdir)
-        app.RequestClass = core_support.get_request_class(prefix="v1")
+        app.RequestClass = get_request_class(prefix="v1")
         return app
 
     def create_collection(self, bucket_id, collection_id):
