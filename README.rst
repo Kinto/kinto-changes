@@ -87,9 +87,11 @@ the ``monitor`` bucket. This can be specified in settings:
     kinto.event_listeners.changes.collection = changes
 
 
-If specified in settings, the changes will have a ``http_host`` attribute.
-This can be used to distinguish changes from several Kinto instances.
+The changes entries will have a ``host`` attribute, that can be used to
+distinguish changes from several Kinto instances.
 
-::
+.. code-block :: ini
 
-    kinto.http_host = website.domain.tld
+    kinto.event_listeners.changes.http_host = website.domain.tld
+
+By default, it will rely on the global setting ``kinto.http_host``.

@@ -10,12 +10,13 @@ from kinto.core.storage import exceptions as storage_exceptions
 
 class Listener(ListenerBase):
     def __init__(self, collections, changes_bucket, changes_collection,
-                 changes_principals):
+                 changes_principals, http_host=None):
         super(Listener, self).__init__()
         self.collections = set(collections)
         self.changes_bucket = changes_bucket
         self.changes_collection = changes_collection
         self.changes_principals = changes_principals
+        self.http_host = http_host
 
     def __call__(self, event):
         registry = event.request.registry
@@ -61,8 +62,9 @@ class Listener(ListenerBase):
         # The record_id is always the same for a given
         # bucket/collection couple. This means the change record will
         # be updated for each record update on a collection.
-
-        host = registry.settings.get('http_host')
+        settings = registry.settings
+        http_host = settings.get('http_host')
+        host = self.http_host if self.http_host is not None else http_host
         uniqueid = '%s%s' % (host, collection_uri)
         identifier = hashlib.md5(uniqueid.encode('utf-8')).hexdigest()
         record_id = six.text_type(UUID(identifier))
@@ -90,6 +92,7 @@ def load_from_config(config, prefix=''):
     changes_bucket = settings.get(prefix + 'bucket', 'monitor')
     changes_collection = settings.get(prefix + 'collection', 'changes')
     changes_principals = aslist(settings.get(prefix + 'principals', Everyone))
+    http_host = settings.get(prefix + 'http_host')
 
     return Listener(collections, changes_bucket, changes_collection,
-                    changes_principals)
+                    changes_principals, http_host)
