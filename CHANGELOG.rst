@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-0.4.0 (unreleased)
+0.4.0 (2016-11-07)
 ------------------
 
 - Add the plugin version in the capability (#20)
