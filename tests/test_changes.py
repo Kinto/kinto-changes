@@ -134,10 +134,12 @@ class UpdateChangesTest(BaseWebTest, unittest.TestCase):
             "description": "Track modifications of records in Kinto and store "
                            "the collection timestamps into a specific bucket "
                            "and collection.",
+            "collections": [u'/buckets/blocklists'],
             "url": "http://kinto.readthedocs.io/en/latest/tutorials/"
                    "synchronisation.html#polling-for-remote-changes"
         }
         self.assertEqual(expected, capabilities['changes'])
+
 
 class UpdateConfiguredChangesTest(BaseWebTest, unittest.TestCase):
     config = 'mozilla.ini'
@@ -156,9 +158,9 @@ class UpdateConfiguredChangesTest(BaseWebTest, unittest.TestCase):
         self.assertEquals(len(resp.json['data']), 1)
 
     def test_changes_records_permissions_can_be_specified_in_settings(self):
-        resp = self.app.get('/buckets/mozilla/collections/updates',
-                            headers=self.headers)
-        self.assertIn('user:natim', resp.json['permissions']['read'])
+        self.app.get('/buckets/mozilla/collections/updates',
+                     headers=self.headers,
+                     status=200)
 
     def test_changes_records_are_not_readable_for_unauthorized(self):
         headers = self.headers.copy()
