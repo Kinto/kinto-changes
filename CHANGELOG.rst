@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-0.5.0 (unreleased)
+0.5.0 (2017-01-16)
 ------------------
 
 - Do not force the timestamp of monitored entries (#27)
