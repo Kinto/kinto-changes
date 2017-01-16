@@ -5,7 +5,7 @@ Changelog
 0.5.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Do not force the timestamp of monitored entries (#27)
 
 
 0.4.0 (2016-11-07)

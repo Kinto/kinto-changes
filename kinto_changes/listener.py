@@ -68,8 +68,6 @@ class Listener(ListenerBase):
         uniqueid = '%s%s' % (host, collection_uri)
         identifier = hashlib.md5(uniqueid.encode('utf-8')).hexdigest()
         record_id = six.text_type(UUID(identifier))
-        last_modified = registry.storage.collection_timestamp(
-            parent_id=collection_uri, collection_id='record')
 
         registry.storage.update(
             parent_id=collection_id,
@@ -77,7 +75,6 @@ class Listener(ListenerBase):
             object_id=record_id,
             record={
                 'id': record_id,
-                'last_modified': last_modified,
                 'host': host,
                 'bucket': bucket,
                 'collection': collection

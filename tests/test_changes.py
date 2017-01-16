@@ -89,13 +89,13 @@ class UpdateChangesTest(BaseWebTest, unittest.TestCase):
         after = resp.json['data']['last_modified']
         self.assertEqual(before, after)
 
-    def test_change_record_has_last_modified_of_collection_of_records(self):
+    def test_change_record_has_greater_last_modified_of_collection_of_records(self):
         resp = self.app.post_json(self.records_uri, SAMPLE_RECORD,
                                   headers=self.headers)
         last_modified = resp.json['data']['last_modified']
         resp = self.app.get(self.changes_uri, headers=self.headers)
         change_last_modified = resp.json['data'][0]['last_modified']
-        self.assertEqual(last_modified, change_last_modified)
+        self.assertGreaterEqual(change_last_modified, last_modified)
 
     def test_record_with_old_timestamp_does_update_changes(self):
         resp = self.app.post_json(self.records_uri, SAMPLE_RECORD,
