@@ -11,8 +11,8 @@ Kinto Changes
 .. image:: https://coveralls.io/repos/Kinto/kinto-changes/badge.svg?branch=master
         :target: https://coveralls.io/r/Kinto/kinto-changes
 
-**kinto-changes** tracks modifications of records in Kinto and stores the
-collection timestamps into a specific bucket and collection.
+**kinto-changes** tracks modifications of records in Kinto and stores the list
+of changed collection into a specific bucket and collection.
 
 This plugin is useful to allow for polling on several collections
 changes with one HTTP request.
@@ -38,7 +38,7 @@ In the `Kinto <http://kinto.readthedocs.io/>`_ settings:
     kinto.event_listeners.changes.use = kinto_changes.listener
 
 
-Now everytime a record is modified, the list of current timestamps is available
+Now everytime a record is modified, the list of modified collections is available
 at ``GET /v1/buckets/monitor/collections/changes/records``.
 
 
@@ -64,7 +64,7 @@ or every collections of the ``settings`` bucket:
 Permissions
 '''''''''''
 
-By default the list of timestamps is readable by anonymous users (``system.Everyone``).
+By default the list of changed collections is readable by anonymous users (``system.Everyone``).
 But the list of authorized principals can be specified in settings:
 
 ::
@@ -78,7 +78,7 @@ But the list of authorized principals can be specified in settings:
 Advanced options
 ''''''''''''''''
 
-By default, the list of timestamps is available in the ``changes`` collection in
+By default, the list of changed collections is available in the ``changes`` collection in
 the ``monitor`` bucket. This can be specified in settings:
 
 ::
