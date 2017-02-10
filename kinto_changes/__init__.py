@@ -18,3 +18,5 @@ def includeme(config):
         url="http://kinto.readthedocs.io/en/latest/tutorials/"
         "synchronisation.html#polling-for-remote-changes",
         collections=aslist(collections))
+
+    config.scan('kinto_changes.views')
