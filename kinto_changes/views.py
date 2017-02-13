@@ -1,7 +1,13 @@
+import hashlib
+import six
+from uuid import UUID
+
 import colander
 from pyramid.security import NO_PERMISSION_REQUIRED
+from pyramid.settings import aslist
 
 from kinto.core import resource
+from kinto.core import utils as core_utils
 from kinto.core.storage.memory import extract_record_set
 
 
@@ -12,17 +18,62 @@ class PermissionsModel(object):
 
     def __init__(self, request):
         self.request = request
+        self.storage = request.registry.storage
+
+        settings = request.registry.settings
+        self.http_host = settings.get('http_host') or ''
+        self.resources_uri = aslist(settings.get('kinto.event_listeners.changes.collections',
+                                    settings.get('kinto.changes.resources', '')))
 
     def _entries(self):
-        # XXX :)
-        return [
-            {"host":"firefox.settings.services.mozilla.com","last_modified":1486583989669,"bucket":"blocklists","id":"19e79f22-62cf-92e1-c12c-a3b4b9cf51be","collection":"plugins"},
-            {"host":"firefox.settings.services.mozilla.com","last_modified":1486576017128,"bucket":"blocklists-preview","id":"3ace9d8e-00b5-a353-7fd5-1f081ff482ba","collection":"plugins"},
-            {"host":"firefox.settings.services.mozilla.com","last_modified":1485908438783,"bucket":"blocklists","id":"0e543556-43bf-3139-1fda-2a0068116c6d","collection":"certificates"},
-        ]
+        entries = []
+
+        for (bucket_id, collection_id) in self._monitored_collections():
+            bucket_uri = core_utils.instance_uri(self.request, 'bucket', id=bucket_id)
+            collection_uri = core_utils.instance_uri(self.request,
+                                                     'collection',
+                                                     bucket_id=bucket_id,
+                                                     id=collection_id)
+            timestamp = self.storage.collection_timestamp(parent_id=bucket_uri,
+                                                          collection_id=collection_id)
+
+            uniqueid = (self.http_host + collection_uri)
+            identifier = hashlib.md5(uniqueid.encode('utf-8')).hexdigest()
+            entry_id = six.text_type(UUID(identifier))
+
+            entry = dict(id=entry_id,
+                         last_modified=timestamp,
+                         bucket=bucket_id,
+                         collection=collection_id,
+                         host=self.http_host)
+
+            entries.append(entry)
+
+        return entries
+
+    def _monitored_collections(self):
+        collections = []
+
+        for resource_uri in self.resources_uri:
+            resource_name, matchdict = core_utils.view_lookup(self.request, resource_uri)
+            if resource_name == 'bucket':
+                bucket_id = matchdict['id']
+                # Every collections in this bucket.
+                result, count = self.storage.get_all(collection_id='collection',
+                                                     parent_id=resource_uri)
+                collections.extend([(bucket_id, obj['id']) for obj in result])
+
+            elif resource_name == 'collection':
+                collections.append((matchdict['bucket_id'], matchdict['id']))
+
+        return collections
+
 
     def timestamp(self):
-        return max([e["last_modified"] for e in self._entries()])
+        entries = self._entries()
+        if entries:
+            return max([e["last_modified"] for e in entries])
+        return core_utils.timestamp()
 
     def get_records(self, filters=None, sorting=None, pagination_rules=None,
                     limit=None, include_deleted=False, parent_id=None):
