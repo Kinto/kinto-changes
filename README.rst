@@ -11,11 +11,8 @@ Kinto Changes
 .. image:: https://coveralls.io/repos/Kinto/kinto-changes/badge.svg?branch=master
         :target: https://coveralls.io/r/Kinto/kinto-changes
 
-**kinto-changes** tracks modifications of records in Kinto and stores the list
-of changed collection into a specific bucket and collection.
-
-This plugin is useful to allow for polling on several collections
-changes with one HTTP request.
+**kinto-changes** shows the list of collection timestamps, allowing to poll changes
+on several collections with one HTTP request.
 
 
 Install
@@ -30,68 +27,25 @@ Setup
 
 In the `Kinto <http://kinto.readthedocs.io/>`_ settings:
 
-::
+.. code-block :: ini
 
     kinto.includes = kinto_changes
 
-    kinto.event_listeners = changes
-    kinto.event_listeners.changes.use = kinto_changes.listener
+    # List of buckets/collections to show:
+    kinto.changes.resources = /buckets/settings
+                              /buckets/blocklists/collections/certificates
 
-
-Now everytime a record is modified, the list of modified collections is available
-at ``GET /v1/buckets/monitor/collections/changes/records``.
-
-
-Filter collections
-''''''''''''''''''
-
-It is possible to choose which collections are monitored:
-
-::
-
-    kinto.event_listeners.changes.collections = <list of URIs>
-
-For example, to be notified of record updates in the ``certificates`` collection,
-or every collections of the ``settings`` bucket:
-
-::
-
-    kinto.event_listeners.changes.collections =
-        /buckets/blocklists/collections/certificates
-        /buckets/settings
-
-
-Permissions
-'''''''''''
-
-By default the list of changed collections is readable by anonymous users (``system.Everyone``).
-But the list of authorized principals can be specified in settings:
-
-::
-
-    kinto.event_listeners.changes.principals =
-        system.Authenticated
-        group:admins
-        twitter:@natim
+The list of timestamps is available at ``GET /v1/buckets/monitor/collections/changes/records``.
 
 
 Advanced options
 ''''''''''''''''
-
-By default, the list of changed collections is available in the ``changes`` collection in
-the ``monitor`` bucket. This can be specified in settings:
-
-::
-
-    kinto.event_listeners.changes.bucket = monitor
-    kinto.event_listeners.changes.collection = changes
-
 
 The changes entries will have a ``host`` attribute, that can be used to
 distinguish changes from several Kinto instances.
 
 .. code-block :: ini
 
-    kinto.event_listeners.changes.http_host = website.domain.tld
+    kinto.changes.http_host = website.domain.tld
 
 By default, it will rely on the global setting ``kinto.http_host``.

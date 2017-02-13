@@ -7,7 +7,7 @@ __version__ = pkg_resources.get_distribution(__package__).version
 
 def includeme(config):
     settings = config.get_settings()
-    collections = settings.get('event_listeners.changes.collections', [])
+    collections = settings.get('changes.resources', [])
 
     config.add_api_capability(
         "changes",

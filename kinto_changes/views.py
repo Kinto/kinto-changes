@@ -25,20 +25,27 @@ class PermissionsModel(object):
 
         settings = request.registry.settings
         self.http_host = settings.get('http_host') or ''
-        self.resources_uri = aslist(settings.get('kinto.event_listeners.changes.collections',
-                                    settings.get('kinto.changes.resources', '')))
+        self.resources_uri = aslist(settings.get('changes.resources', ''))
+
+    def timestamp(self):
+        return max([e["last_modified"] for e in self._entries()])
+
+    def get_records(self, filters=None, sorting=None, pagination_rules=None,
+                    limit=None, include_deleted=False, parent_id=None):
+        return extract_record_set(self._entries(), filters=filters, sorting=sorting,
+                                  pagination_rules=pagination_rules,
+                                  limit=limit)
 
     def _entries(self):
-        entries = []
+        entries = {}
 
         for (bucket_id, collection_id) in self._monitored_collections():
-            bucket_uri = core_utils.instance_uri(self.request, 'bucket', id=bucket_id)
             collection_uri = core_utils.instance_uri(self.request,
                                                      'collection',
                                                      bucket_id=bucket_id,
                                                      id=collection_id)
-            timestamp = self.storage.collection_timestamp(parent_id=bucket_uri,
-                                                          collection_id=collection_id)
+            timestamp = self.storage.collection_timestamp(parent_id=collection_uri,
+                                                          collection_id='record')
 
             uniqueid = (self.http_host + collection_uri)
             identifier = hashlib.md5(uniqueid.encode('utf-8')).hexdigest()
@@ -50,9 +57,9 @@ class PermissionsModel(object):
                          collection=collection_id,
                          host=self.http_host)
 
-            entries.append(entry)
+            entries[entry_id] = entry
 
-        return entries
+        return entries.values()
 
     def _monitored_collections(self):
         collections = []
@@ -69,18 +76,6 @@ class PermissionsModel(object):
                 collections.append((matchdict['bucket_id'], matchdict['id']))
 
         return collections
-
-    def timestamp(self):
-        entries = self._entries()
-        if entries:
-            return max([e["last_modified"] for e in entries])
-        return core_utils.timestamp()
-
-    def get_records(self, filters=None, sorting=None, pagination_rules=None,
-                    limit=None, include_deleted=False, parent_id=None):
-        return extract_record_set(self._entries(), filters=filters, sorting=sorting,
-                                  pagination_rules=pagination_rules,
-                                  limit=limit)
 
 
 class ChangesSchema(resource.ResourceSchema):
