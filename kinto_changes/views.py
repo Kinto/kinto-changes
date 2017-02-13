@@ -3,11 +3,14 @@ import six
 from uuid import UUID
 
 import colander
-from pyramid.security import NO_PERMISSION_REQUIRED
+from pyramid.security import NO_PERMISSION_REQUIRED, IAuthorizationPolicy
 from pyramid.settings import aslist
+from zope.interface import implementer
+
 
 from kinto.core import resource
 from kinto.core import utils as core_utils
+from kinto.core.authorization import RouteFactory
 from kinto.core.storage.memory import extract_record_set
 
 
@@ -57,17 +60,15 @@ class PermissionsModel(object):
         for resource_uri in self.resources_uri:
             resource_name, matchdict = core_utils.view_lookup(self.request, resource_uri)
             if resource_name == 'bucket':
-                bucket_id = matchdict['id']
                 # Every collections in this bucket.
                 result, count = self.storage.get_all(collection_id='collection',
                                                      parent_id=resource_uri)
-                collections.extend([(bucket_id, obj['id']) for obj in result])
+                collections.extend([(matchdict['id'], obj['id']) for obj in result])
 
             elif resource_name == 'collection':
                 collections.append((matchdict['bucket_id'], matchdict['id']))
 
         return collections
-
 
     def timestamp(self):
         entries = self._entries()
@@ -91,12 +92,20 @@ class ChangesSchema(resource.ResourceSchema):
         preserve_unknown = False
 
 
+@implementer(IAuthorizationPolicy)
+class AnonymousRoute(RouteFactory):
+    def check_permission(self, principals, bound_perms):
+        # Bypass permissions check on /buckets/monitor.
+        return True
+
+
 @resource.register(name='changes',
                    description='List of changes',
                    collection_path='/buckets/monitor/collections/changes/records',
                    record_path=None,
                    collection_methods=('GET',),
-                   permission=NO_PERMISSION_REQUIRED)
+                   permission=NO_PERMISSION_REQUIRED,
+                   factory=AnonymousRoute)
 class Changes(resource.ShareableResource):
 
     schema = ChangesSchema
