@@ -71,8 +71,8 @@ class PermissionsModel(object):
             resource_name, matchdict = core_utils.view_lookup(self.request, resource_uri)
             if resource_name == 'bucket':
                 # Every collections in this bucket.
-                result, count = self.storage.get_all(collection_id='collection',
-                                                     parent_id=resource_uri)
+                result, _ = self.storage.get_all(collection_id='collection',
+                                                 parent_id=resource_uri)
                 collections.extend([(matchdict['id'], obj['id']) for obj in result])
 
             elif resource_name == 'collection':
