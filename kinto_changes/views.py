@@ -27,6 +27,8 @@ class PermissionsModel(object):
         self.http_host = settings.get('http_host') or ''
         self.resources_uri = aslist(settings.get('changes.resources', ''))
 
+        self.__entries = None
+
     def timestamp(self):
         return max([e["last_modified"] for e in self._entries()])
 
@@ -37,29 +39,30 @@ class PermissionsModel(object):
                                   limit=limit)
 
     def _entries(self):
-        entries = {}
+        if self.__entries is None:
+            self.__entries = {}
 
-        for (bucket_id, collection_id) in self._monitored_collections():
-            collection_uri = core_utils.instance_uri(self.request,
-                                                     'collection',
-                                                     bucket_id=bucket_id,
-                                                     id=collection_id)
-            timestamp = self.storage.collection_timestamp(parent_id=collection_uri,
-                                                          collection_id='record')
+            for (bucket_id, collection_id) in self._monitored_collections():
+                collection_uri = core_utils.instance_uri(self.request,
+                                                         'collection',
+                                                         bucket_id=bucket_id,
+                                                         id=collection_id)
+                timestamp = self.storage.collection_timestamp(parent_id=collection_uri,
+                                                              collection_id='record')
 
-            uniqueid = (self.http_host + collection_uri)
-            identifier = hashlib.md5(uniqueid.encode('utf-8')).hexdigest()
-            entry_id = six.text_type(UUID(identifier))
+                uniqueid = (self.http_host + collection_uri)
+                identifier = hashlib.md5(uniqueid.encode('utf-8')).hexdigest()
+                entry_id = six.text_type(UUID(identifier))
 
-            entry = dict(id=entry_id,
-                         last_modified=timestamp,
-                         bucket=bucket_id,
-                         collection=collection_id,
-                         host=self.http_host)
+                entry = dict(id=entry_id,
+                             last_modified=timestamp,
+                             bucket=bucket_id,
+                             collection=collection_id,
+                             host=self.http_host)
 
-            entries[entry_id] = entry
+                self.__entries[entry_id] = entry
 
-        return entries.values()
+        return self.__entries.values()
 
     def _monitored_collections(self):
         collections = []
