@@ -20,6 +20,23 @@ class UpdateChangesTest(BaseWebTest, unittest.TestCase):
         self.app.post_json(self.records_uri, SAMPLE_RECORD,
                            headers=self.headers)
 
+    def test_parent_bucket_and_collection_dont_have_to_exist(self):
+        self.app.delete('/buckets/monitor/collections/changes',
+                        headers=self.headers, status=(403, 404))
+        self.app.get(self.changes_uri)  # Not failing
+        self.app.delete('/buckets/monitor',
+                        headers=self.headers, status=(403, 404))
+        self.app.get(self.changes_uri)  # Not failing
+
+    def test_parent_bucket_and_collection_can_exist(self):
+        self.app.put('/buckets/monitor', headers=self.headers)
+        resp = self.app.get(self.changes_uri)  # Not failing
+        self.assertEqual(len(resp.json['data']), 1)
+
+        self.app.put('/buckets/monitor/collections/changes', headers=self.headers)
+        resp = self.app.get(self.changes_uri)  # Not failing
+        self.assertEqual(len(resp.json['data']), 1)
+
     def test_a_change_record_is_updated_per_bucket_collection(self):
         resp = self.app.get(self.changes_uri)
         before_timestamp = resp.json['data'][0]['last_modified']
