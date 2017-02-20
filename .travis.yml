@@ -4,7 +4,6 @@ sudo: false
 env:
   - TOX_ENV=py27
   - TOX_ENV=py34
-  - TOX_ENV=kinto-master
   - TOX_ENV=flake8
 install: pip install -U tox
 script: tox -e $TOX_ENV
@@ -12,3 +11,8 @@ after_success:
     # Report coverage results to coveralls.io
     - pip install coveralls
     - coveralls
+matrix:
+  include:
+    - python: 3.5
+      env:
+        - TOX_ENV=kinto-master
