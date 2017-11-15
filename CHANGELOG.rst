@@ -5,7 +5,14 @@ Changelog
 1.1.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**Breaking changes**
+
+- Upgrade to Kinto 7
+
+
+**Bug fixes**
+
+- Disable reify to always get the most acurrate timestamp. (#36)
 
 
 1.0.0 (2017-02-14)

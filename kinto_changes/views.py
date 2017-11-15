@@ -30,7 +30,10 @@ class PermissionsModel(object):
         self.__entries = None
 
     def timestamp(self):
-        return max([e["last_modified"] for e in self._entries()])
+        if not self._entries():
+            return core_utils.msec_time()
+        max_value = max([e["last_modified"] for e in self._entries()])
+        return max_value
 
     def get_records(self, filters=None, sorting=None, pagination_rules=None,
                     limit=None, include_deleted=False, parent_id=None):
@@ -111,3 +114,8 @@ class Changes(resource.ShareableResource):
     def __init__(self, request, context=None):
         super(Changes, self).__init__(request, context)
         self.model = PermissionsModel(request)
+
+    @property
+    def timestamp(self):
+        tz = self.model.timestamp()
+        return tz
