@@ -22,8 +22,9 @@ class BaseWebTest(CoreWebTest):
         self.headers.update(get_user_headers('mat'))
         self.headers.update({'Origin': 'http://localhost:9999'})
 
-    def get_app_settings(self, extras=None):
-        ini_path = os.path.join(here, self.config)
+    @classmethod
+    def get_app_settings(cls, extras=None):
+        ini_path = os.path.join(here, cls.config)
         config = configparser.ConfigParser()
         config.read(ini_path)
         settings = dict(config.items('app:main'))

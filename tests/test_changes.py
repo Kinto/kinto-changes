@@ -1,11 +1,8 @@
 import mock
-import time
 import unittest
 
-from kinto.core import utils as core_utils
-
 from kinto_changes import __version__ as changes_version
-from . import BaseWebTest, get_user_headers
+from . import BaseWebTest
 
 
 SAMPLE_RECORD = {'data': {'dev-edition': True}}
