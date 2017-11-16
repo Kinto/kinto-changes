@@ -12,7 +12,7 @@ Changelog
 
 **Bug fixes**
 
-- Disable reify to always get the most acurrate timestamp. (#36)
+- Disable reify to always get the most accurate timestamp. (#36)
 
 
 1.0.0 (2017-02-14)

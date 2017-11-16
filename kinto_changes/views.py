@@ -117,5 +117,4 @@ class Changes(resource.ShareableResource):
 
     @property
     def timestamp(self):
-        tz = self.model.timestamp()
-        return tz
+        return self.model.timestamp()
