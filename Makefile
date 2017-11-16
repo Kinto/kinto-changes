@@ -2,7 +2,7 @@ VIRTUALENV = virtualenv
 VENV := $(shell echo $${VIRTUAL_ENV-.venv})
 PYTHON = $(VENV)/bin/python
 TOX = $(VENV)/bin/tox
-TEMPDIR := $(shell mktemp -d)
+TEMPDIR := $(shell mktemp -du)
 
 build-requirements:
 	$(VIRTUALENV) $(TEMPDIR)
