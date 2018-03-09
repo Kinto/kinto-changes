@@ -1,5 +1,4 @@
 import hashlib
-import six
 from uuid import UUID
 
 import colander
@@ -55,7 +54,7 @@ class PermissionsModel(object):
 
                 uniqueid = (self.http_host + collection_uri)
                 identifier = hashlib.md5(uniqueid.encode('utf-8')).hexdigest()
-                entry_id = six.text_type(UUID(identifier))
+                entry_id = str(UUID(identifier))
 
                 entry = dict(id=entry_id,
                              last_modified=timestamp,
