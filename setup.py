@@ -15,7 +15,7 @@ with open('CHANGELOG.rst') as history_file:
     history = history_file.read()
 
 requirements = [
-    'kinto>=4.0.0'
+    'kinto>=7.0.0'
 ]
 
 test_requirements = [
