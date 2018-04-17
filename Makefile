@@ -1,4 +1,4 @@
-VIRTUALENV = virtualenv
+VIRTUALENV = virtualenv --python=python3
 VENV := $(shell echo $${VIRTUAL_ENV-.venv})
 PYTHON = $(VENV)/bin/python
 TOX = $(VENV)/bin/tox
