@@ -2,10 +2,12 @@ Changelog
 =========
 
 
-1.2.0 (unreleased)
+1.2.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**Internal changes**
+
+- Get rid of six
 
 
 1.1.0 (2017-11-16)
