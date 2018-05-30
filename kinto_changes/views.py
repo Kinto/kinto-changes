@@ -2,7 +2,7 @@ import hashlib
 from uuid import UUID
 
 import colander
-from pyramid.security import NO_PERMISSION_REQUIRED, IAuthorizationPolicy
+from pyramid.security import IAuthorizationPolicy
 from pyramid.settings import aslist
 from zope.interface import implementer
 
@@ -104,7 +104,6 @@ class AnonymousRoute(RouteFactory):
                    collection_path='/buckets/monitor/collections/changes/records',
                    record_path=None,
                    collection_methods=('GET',),
-                   permission=NO_PERMISSION_REQUIRED,
                    factory=AnonymousRoute)
 class Changes(resource.ShareableResource):
 
