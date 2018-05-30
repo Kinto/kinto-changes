@@ -13,7 +13,7 @@ from kinto.core.authorization import RouteFactory
 from kinto.core.storage.memory import extract_record_set
 
 
-class PermissionsModel(object):
+class ChangesModel(object):
     id_field = 'id'
     modified_field = 'last_modified'
     deleted_field = 'deleted'
@@ -111,7 +111,7 @@ class Changes(resource.ShareableResource):
 
     def __init__(self, request, context=None):
         super(Changes, self).__init__(request, context)
-        self.model = PermissionsModel(request)
+        self.model = ChangesModel(request)
 
     @property
     def timestamp(self):
