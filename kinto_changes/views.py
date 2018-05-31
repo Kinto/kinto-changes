@@ -1,6 +1,3 @@
-import hashlib
-from uuid import UUID
-
 import colander
 from pyramid.security import IAuthorizationPolicy
 from zope.interface import implementer
@@ -10,7 +7,7 @@ from kinto.core import resource
 from kinto.core import utils as core_utils
 from kinto.core.authorization import RouteFactory
 from kinto.core.storage.memory import extract_record_set
-from .utils import monitored_collections
+from .utils import monitored_collections, changes_record
 
 
 class ChangesModel(object):
@@ -51,17 +48,10 @@ class ChangesModel(object):
                 timestamp = self.storage.collection_timestamp(parent_id=collection_uri,
                                                               collection_id='record')
 
-                uniqueid = (self.http_host + collection_uri)
-                identifier = hashlib.md5(uniqueid.encode('utf-8')).hexdigest()
-                entry_id = str(UUID(identifier))
+                entry = changes_record(self.request, self.http_host,
+                                       bucket_id, collection_id, timestamp)
 
-                entry = dict(id=entry_id,
-                             last_modified=timestamp,
-                             bucket=bucket_id,
-                             collection=collection_id,
-                             host=self.http_host)
-
-                self.__entries[entry_id] = entry
+                self.__entries[entry['id']] = entry
 
         return self.__entries.values()
 
