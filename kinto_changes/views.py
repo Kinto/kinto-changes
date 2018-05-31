@@ -3,7 +3,6 @@ from uuid import UUID
 
 import colander
 from pyramid.security import IAuthorizationPolicy
-from pyramid.settings import aslist
 from zope.interface import implementer
 
 
@@ -11,6 +10,7 @@ from kinto.core import resource
 from kinto.core import utils as core_utils
 from kinto.core.authorization import RouteFactory
 from kinto.core.storage.memory import extract_record_set
+from .utils import monitored_collections
 
 
 class ChangesModel(object):
@@ -24,7 +24,6 @@ class ChangesModel(object):
 
         settings = request.registry.settings
         self.http_host = settings.get('http_host') or ''
-        self.resources_uri = aslist(settings.get('changes.resources', ''))
 
         self.__entries = None
 
@@ -44,7 +43,7 @@ class ChangesModel(object):
         if self.__entries is None:
             self.__entries = {}
 
-            for (bucket_id, collection_id) in self._monitored_collections():
+            for (bucket_id, collection_id) in monitored_collections(self.request.registry):
                 collection_uri = core_utils.instance_uri(self.request,
                                                          'collection',
                                                          bucket_id=bucket_id,
@@ -65,22 +64,6 @@ class ChangesModel(object):
                 self.__entries[entry_id] = entry
 
         return self.__entries.values()
-
-    def _monitored_collections(self):
-        collections = []
-
-        for resource_uri in self.resources_uri:
-            resource_name, matchdict = core_utils.view_lookup(self.request, resource_uri)
-            if resource_name == 'bucket':
-                # Every collections in this bucket.
-                result, _ = self.storage.get_all(collection_id='collection',
-                                                 parent_id=resource_uri)
-                collections.extend([(matchdict['id'], obj['id']) for obj in result])
-
-            elif resource_name == 'collection':
-                collections.append((matchdict['bucket_id'], matchdict['id']))
-
-        return collections
 
 
 class ChangesSchema(resource.ResourceSchema):
