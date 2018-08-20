@@ -8,6 +8,7 @@ from kinto.core import utils as core_utils
 from kinto.core.authorization import RouteFactory
 from kinto.core.storage.memory import extract_record_set
 from .utils import monitored_collections, changes_record
+from . import CHANGES_RECORDS_PATH
 
 
 class ChangesModel(object):
@@ -18,9 +19,6 @@ class ChangesModel(object):
     def __init__(self, request):
         self.request = request
         self.storage = request.registry.storage
-
-        settings = request.registry.settings
-        self.http_host = settings.get('http_host') or ''
 
         self.__entries = None
 
@@ -48,10 +46,10 @@ class ChangesModel(object):
                 timestamp = self.storage.collection_timestamp(parent_id=collection_uri,
                                                               collection_id='record')
 
-                entry = changes_record(self.request, self.http_host,
+                entry = changes_record(self.request,
                                        bucket_id, collection_id, timestamp)
 
-                self.__entries[entry['id']] = entry
+                self.__entries[entry[self.id_field]] = entry
 
         return self.__entries.values()
 
@@ -74,7 +72,7 @@ class AnonymousRoute(RouteFactory):
 
 @resource.register(name='changes',
                    description='List of changes',
-                   collection_path='/buckets/monitor/collections/changes/records',
+                   collection_path=CHANGES_RECORDS_PATH,
                    record_path=None,
                    collection_methods=('GET',),
                    factory=AnonymousRoute)

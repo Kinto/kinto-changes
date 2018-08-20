@@ -7,6 +7,13 @@ from .listener import Listener
 #: Module version, as defined in PEP-0396.
 __version__ = pkg_resources.get_distribution(__package__).version
 
+MONITOR_BUCKET = 'monitor'
+MONITOR_BUCKET_PATH = '/buckets/{}'.format(MONITOR_BUCKET)
+CHANGES_COLLECTION = 'changes'
+CHANGES_COLLECTION_PATH = '{}/collections/{}'.format(
+    MONITOR_BUCKET_PATH, CHANGES_COLLECTION)
+CHANGES_RECORDS_PATH = '{}/records'.format(CHANGES_COLLECTION_PATH)
+
 
 def identity(f):
     """Used as a fallback decorator if no statsd configured."""
@@ -36,7 +43,7 @@ def includeme(config):
         key = 'plugins.kinto_changes'
         decorate = config.registry.statsd.timer(key)
 
-    config.add_subscriber(decorate(listener.save_timestamps),
+    config.add_subscriber(decorate(listener.track_timestamps),
                           pyramid.events.ApplicationCreated)
 
     config.add_subscriber(decorate(listener.on_record_changed),

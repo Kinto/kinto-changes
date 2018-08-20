@@ -11,8 +11,10 @@ class ChangesRecordTest(unittest.TestCase):
         request = Request.blank(path='/')
         request.route_path = mock.Mock()
         request.route_path.return_value = '/buckets/a/collections/b'
+        request.registry = mock.Mock()
+        request.registry.settings = {}
         timestamp = 1525457597166
-        entry = changes_record(request, '', 'a', 'b', timestamp)
+        entry = changes_record(request, 'a', 'b', timestamp)
 
         self.assertEqual(entry, {
             "bucket": "a",
@@ -26,8 +28,10 @@ class ChangesRecordTest(unittest.TestCase):
         request = Request.blank(path='/')
         request.route_path = mock.Mock()
         request.route_path.return_value = '/buckets/a/collections/b'
+        request.registry = mock.Mock()
+        request.registry.settings = {'http_host': 'https://localhost:443'}
         timestamp = 1525457597166
-        entry = changes_record(request, 'https://localhost:443', 'a', 'b', timestamp)
+        entry = changes_record(request, 'a', 'b', timestamp)
 
         self.assertEqual(entry, {
             "bucket": "a",

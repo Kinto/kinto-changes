@@ -25,8 +25,9 @@ def monitored_collections(registry):
     return collections
 
 
-def changes_record(request, http_host, bucket_id, collection_id, timestamp):
+def changes_record(request, bucket_id, collection_id, timestamp):
     """Generate a record for /buckets/monitor/collections/changes."""
+    http_host = request.registry.settings.get('http_host') or ''
     collection_uri = core_utils.instance_uri(
         request, 'collection', bucket_id=bucket_id, id=collection_id)
     uniqueid = http_host + collection_uri

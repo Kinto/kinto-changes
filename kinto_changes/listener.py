@@ -8,10 +8,9 @@ from .utils import monitored_collections, changes_record
 class Listener(object):
     def __init__(self, config):
         self.registry = config.registry
-        self.http_host = self.registry.settings.get('http_host') or ''
         self.collection_timestamps = {}
 
-    def save_timestamps(self, event):
+    def track_timestamps(self, event):
         for (bucket_id, collection_id) in monitored_collections(self.registry):
             timestamp = self.get_collection_timestamp(bucket_id, collection_id)
             self.collection_timestamps[(bucket_id, collection_id)] = timestamp
@@ -27,24 +26,23 @@ class Listener(object):
     def on_record_changed(self, event):
         bucket_id = event.payload['bucket_id']
         collection_id = event.payload['collection_id']
+        timestamp = event.payload['timestamp']
+
         if (bucket_id, collection_id) not in monitored_collections(self.registry):
             return
 
         for change in event.impacted_records:
-            timestamp = self.get_collection_timestamp(bucket_id, collection_id)
             # This might be the first we've seen of this collection.
             old_timestamp = self.collection_timestamps.get((bucket_id, collection_id), None)
-            if timestamp == old_timestamp:
-                continue
 
             # Synthesize event for /buckets/monitor/collections/changes record.
-            new = changes_record(event.request, self.http_host,
+            new = changes_record(event.request,
                                  bucket_id, collection_id, timestamp)
             old = None
             action = ACTIONS.CREATE
             if old_timestamp:
                 action = ACTIONS.UPDATE
-                old = changes_record(event.request, self.http_host,
+                old = changes_record(event.request,
                                      bucket_id, collection_id, old_timestamp)
 
             resource_data = {'bucket_id': 'monitor', 'collection_id': 'changes', 'id': new['id']}
