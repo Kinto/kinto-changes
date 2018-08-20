@@ -35,6 +35,11 @@ class RedirectEventsTest(BaseWebTest, unittest.TestCase):
                                   e.payload.get('collection_id') == 'changes']
         self.assertEqual(len(monitor_changes_events), 1)
         event = monitor_changes_events[0]
-        self.assertEqual([r['new']['id'] for r in event.impacted_records],
-                         ['470119ee-115b-8f9c-f56b-afb824183411']  # ID for buckets/blocklists/collections/certificates
+
+        # ID for buckets/blocklists/collections/certificates
+        actual_impacted_record_ids = ['470119ee-115b-8f9c-f56b-afb824183411']
+
+        self.assertEqual(
+            [r['new']['id'] for r in event.impacted_records],
+            actual_impacted_record_ids
         )

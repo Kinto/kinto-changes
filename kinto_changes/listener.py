@@ -31,8 +31,6 @@ class Listener(object):
             return
 
         for change in event.impacted_records:
-            record = change.get('old') or change.get('new')
-
             timestamp = self.get_collection_timestamp(bucket_id, collection_id)
             # This might be the first we've seen of this collection.
             old_timestamp = self.collection_timestamps.get((bucket_id, collection_id), None)
@@ -40,17 +38,21 @@ class Listener(object):
                 continue
 
             # Synthesize event for /buckets/monitor/collections/changes record.
-            new = changes_record(event.request, self.http_host, bucket_id, collection_id, timestamp)
+            new = changes_record(event.request, self.http_host,
+                                 bucket_id, collection_id, timestamp)
             old = None
             action = ACTIONS.CREATE
             if old_timestamp:
                 action = ACTIONS.UPDATE
-                old = changes_record(event.request, self.http_host, bucket_id, collection_id, old_timestamp)
+                old = changes_record(event.request, self.http_host,
+                                     bucket_id, collection_id, old_timestamp)
 
             resource_data = {'bucket_id': 'monitor', 'collection_id': 'changes', 'id': new['id']}
 
-            notify_resource_event(event.request, '/buckets/monitor/collections/changes', timestamp, new,
-                                  action, old=old, resource_name='record', resource_data=resource_data
+            notify_resource_event(
+                event.request, '/buckets/monitor/collections/changes',
+                timestamp, new, action, old=old,
+                resource_name='record', resource_data=resource_data
             )
 
             self.collection_timestamps[(bucket_id, collection_id)] = timestamp
