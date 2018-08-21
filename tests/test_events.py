@@ -13,7 +13,7 @@ def monitor_changes_events(events):
             if e.payload.get('bucket_id') == 'monitor' and
             e.payload.get('collection_id') == 'changes']
 
-class RedirectEventsTest(BaseWebTest, unittest.TestCase):
+class RedirectEventsTest(BaseWebTest):
     changes_uri = '/buckets/monitor/collections/changes/records'
     records_uri = '/buckets/blocklists/collections/certificates/records'
 
@@ -47,6 +47,8 @@ class RedirectEventsTest(BaseWebTest, unittest.TestCase):
         self.assertEqual(new['bucket'], bucket_id)
         self.assertEqual(new['collection'], collection_id)
 
+
+class BasicEventsTest(RedirectEventsTest, unittest.TestCase):
     def test_generate_event(self):
         self.app.post_json(self.records_uri, SAMPLE_RECORD,
                            headers=self.headers)
@@ -76,6 +78,8 @@ class RedirectEventsTest(BaseWebTest, unittest.TestCase):
 
         self.assert_event_is_for_collection(event, 'fennec', 'fonts')
 
+
+class InitializationTest(RedirectEventsTest, unittest.TestCase):
     def test_scan_timestamps_on_startup(self):
         self.create_collection('blocklists', 'pinning')
         res = self.app.get('/buckets/blocklists/collections/pinning/records', headers=self.headers)
@@ -92,12 +96,14 @@ class RedirectEventsTest(BaseWebTest, unittest.TestCase):
             config.registry.permission = old_permission
 
         with mock.patch('tests.test_events', restore_storage):
-            self.app = self.make_app({
+            # Careful -- this covers cls.listener and can lead to some
+            # surprising behavior if you add another test to this class
+            app = self.make_app({
                 'kinto.includes': 'tests.test_events kinto_changes'
             })
 
-        self.app.post_json('/buckets/blocklists/collections/pinning/records', SAMPLE_RECORD,
-                           headers=self.headers)
+        app.post_json('/buckets/blocklists/collections/pinning/records', SAMPLE_RECORD,
+                      headers=self.headers)
         events = [call[0][0] for call in self.listener.call_args_list]
         monitor_changes_events = [e for e in events
                                   if e.payload.get('bucket_id') == 'monitor' and
