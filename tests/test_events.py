@@ -1,11 +1,17 @@
+import hashlib
 import mock
 import unittest
+from uuid import UUID
 
 from . import BaseWebTest
 from kinto_changes import includeme
 
 SAMPLE_RECORD = {'data': {'dev-edition': True}}
 
+def monitor_changes_events(events):
+    return [e for e in events
+            if e.payload.get('bucket_id') == 'monitor' and
+            e.payload.get('collection_id') == 'changes']
 
 class RedirectEventsTest(BaseWebTest, unittest.TestCase):
     changes_uri = '/buckets/monitor/collections/changes/records'
@@ -28,33 +34,35 @@ class RedirectEventsTest(BaseWebTest, unittest.TestCase):
         self.registry = self.app.app.registry
         self.listener.call_args_list = []
 
+    def assert_event_is_for_collection(self, event, bucket_id, collection_id):
+        uniqueid = 'www.kinto-storage.org/buckets/{}/collections/{}'.format(bucket_id, collection_id)
+        event_id = hashlib.md5(uniqueid.encode('utf-8')).hexdigest()
+        event_id = str(UUID(event_id))
+
+        self.assertEqual(len(event.impacted_records), 1)
+        impacted_record = event.impacted_records[0]
+        new = impacted_record['new']
+        self.assertEqual(new['id'], event_id)
+        self.assertEqual(new['bucket'], bucket_id)
+        self.assertEqual(new['collection'], collection_id)
+
     def test_generate_event(self):
         self.app.post_json(self.records_uri, SAMPLE_RECORD,
                            headers=self.headers)
         events = [call[0][0] for call in self.listener.call_args_list]
-        monitor_changes_events = [e for e in events
-                                  if e.payload.get('bucket_id') == 'monitor' and
-                                  e.payload.get('collection_id') == 'changes']
-        self.assertEqual(len(monitor_changes_events), 1)
-        event = monitor_changes_events[0]
+        changes_events = monitor_changes_events(events)
+        self.assertEqual(len(changes_events), 1)
+        event = changes_events[0]
 
-        # ID for buckets/blocklists/collections/certificates
-        actual_impacted_record_ids = ['470119ee-115b-8f9c-f56b-afb824183411']
-
-        self.assertEqual(
-            [r['new']['id'] for r in event.impacted_records],
-            actual_impacted_record_ids
-        )
+        self.assert_event_is_for_collection(event, 'blocklists', 'certificates')
 
     def test_ignore_event_for_unmonitored(self):
         self.create_collection('foo', 'certificates')
         self.app.post_json('/buckets/foo/collections/certificates/records',
                            SAMPLE_RECORD, headers=self.headers)
         events = [call[0][0] for call in self.listener.call_args_list]
-        monitor_changes_events = [e for e in events
-                                  if e.payload.get('bucket_id') == 'monitor' and
-                                  e.payload.get('collection_id') == 'changes']
-        self.assertEqual(len(monitor_changes_events), 0)
+        changes_events = monitor_changes_events(events)
+        self.assertEqual(len(changes_events), 0)
 
     def test_scan_timestamps_on_startup(self):
         self.create_collection('blocklists', 'pinning')
@@ -85,13 +93,7 @@ class RedirectEventsTest(BaseWebTest, unittest.TestCase):
         self.assertEqual(len(monitor_changes_events), 1)
         event = monitor_changes_events[0]
 
-        # ID for buckets/blocklists/collections/pinning
-        actual_impacted_record_ids = ['c5b1aefc-bbcc-af1f-df42-73e219236f23']
-
-        self.assertEqual(
-            [r['new']['id'] for r in event.impacted_records],
-            actual_impacted_record_ids
-        )
+        self.assert_event_is_for_collection(event, 'blocklists', 'pinning')
         self.assertEqual(event.impacted_records[0]['old']['last_modified'], last_modified)
 
 
