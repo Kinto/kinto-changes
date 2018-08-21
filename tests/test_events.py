@@ -8,10 +8,12 @@ from kinto_changes import includeme
 
 SAMPLE_RECORD = {'data': {'dev-edition': True}}
 
+
 def monitor_changes_events(events):
     return [e for e in events
             if e.payload.get('bucket_id') == 'monitor' and
             e.payload.get('collection_id') == 'changes']
+
 
 class RedirectEventsTest(BaseWebTest):
     changes_uri = '/buckets/monitor/collections/changes/records'
@@ -27,7 +29,10 @@ class RedirectEventsTest(BaseWebTest):
     def get_app_settings(cls, extras=None):
         settings = super(RedirectEventsTest, cls).get_app_settings(extras)
         settings['event_listeners'] = 'tests.listener'
-        settings['kinto.changes.resources'] = '/buckets/blocklists /buckets/fennec/collections/fonts'
+        settings['kinto.changes.resources'] = ' '.join([
+            '/buckets/blocklists',
+            '/buckets/fennec/collections/fonts'
+        ])
         return settings
 
     def setUp(self):
@@ -36,7 +41,8 @@ class RedirectEventsTest(BaseWebTest):
         self.listener.call_args_list = []
 
     def assert_event_is_for_collection(self, event, bucket_id, collection_id):
-        uniqueid = 'www.kinto-storage.org/buckets/{}/collections/{}'.format(bucket_id, collection_id)
+        uniqueid = 'www.kinto-storage.org/buckets/{}/collections/{}'.format(
+            bucket_id, collection_id)
         event_id = hashlib.md5(uniqueid.encode('utf-8')).hexdigest()
         event_id = str(UUID(event_id))
 
