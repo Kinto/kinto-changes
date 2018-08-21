@@ -27,6 +27,7 @@ class RedirectEventsTest(BaseWebTest, unittest.TestCase):
     def get_app_settings(cls, extras=None):
         settings = super(RedirectEventsTest, cls).get_app_settings(extras)
         settings['event_listeners'] = 'tests.listener'
+        settings['kinto.changes.resources'] = '/buckets/blocklists /buckets/fennec/collections/fonts'
         return settings
 
     def setUp(self):
@@ -63,6 +64,17 @@ class RedirectEventsTest(BaseWebTest, unittest.TestCase):
         events = [call[0][0] for call in self.listener.call_args_list]
         changes_events = monitor_changes_events(events)
         self.assertEqual(len(changes_events), 0)
+
+    def test_event_for_collections(self):
+        self.create_collection('fennec', 'fonts')
+        self.app.post_json('/buckets/fennec/collections/fonts/records', SAMPLE_RECORD,
+                           headers=self.headers)
+        events = [call[0][0] for call in self.listener.call_args_list]
+        changes_events = monitor_changes_events(events)
+        self.assertEqual(len(changes_events), 1)
+        event = changes_events[0]
+
+        self.assert_event_is_for_collection(event, 'fennec', 'fonts')
 
     def test_scan_timestamps_on_startup(self):
         self.create_collection('blocklists', 'pinning')
