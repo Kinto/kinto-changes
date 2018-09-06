@@ -28,6 +28,7 @@ class BaseWebTest(CoreWebTest):
         config = configparser.ConfigParser()
         config.read(ini_path)
         settings = dict(config.items('app:main'))
+        settings.update(extras or {})
         return settings
 
     def setUp(self):
