@@ -5,7 +5,9 @@ Changelog
 1.1.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**New feature**
+
+- Events are now generated on the monitor/changes collection (#41).
 
 
 1.1.1 (2018-04-17)
