@@ -14,9 +14,12 @@ def is_monitoring_collection(registry, bucket_id, collection_id):
         if resource_name == 'bucket' and bucket_id == matchdict['id']:
             return True
 
-        if (resource_name == 'collection' and
-              bucket_id == matchdict['bucket_id'] and
-              collection_id == matchdict['id']):
+        is_matching_collection = (
+            resource_name == 'collection' and
+            bucket_id == matchdict['bucket_id'] and
+            collection_id == matchdict['id']
+        )
+        if is_matching_collection:
             return True
 
 
