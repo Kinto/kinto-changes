@@ -23,15 +23,12 @@ class Listener(object):
         return self.registry.storage.collection_timestamp(parent_id=collection_uri,
                                                           collection_id='record')
 
-    def is_monitoring_collection(self, bucket_id, collection_id):
-        return is_monitoring_collection(self.registry, bucket_id, collection_id)
-
     def on_record_changed(self, event):
         bucket_id = event.payload['bucket_id']
         collection_id = event.payload['collection_id']
         timestamp = event.payload['timestamp']
 
-        if not self.is_monitoring_collection(bucket_id, collection_id):
+        if not is_monitoring_collection(self.registry, bucket_id, collection_id):
             return
 
         for change in event.impacted_records:
