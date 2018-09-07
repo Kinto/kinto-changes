@@ -2,10 +2,12 @@ Changelog
 =========
 
 
-1.1.2 (unreleased)
+1.2.0 (2018-09-06)
 ------------------
 
-- Nothing changed yet.
+**New feature**
+
+- Events are now generated on the monitor/changes collection (#41).
 
 
 1.1.1 (2018-04-17)
