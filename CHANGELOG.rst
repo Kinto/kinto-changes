@@ -5,7 +5,9 @@ Changelog
 1.2.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**Bug fixes**
+
+- Don't do anything during a ``migrate`` command (fixes #43).
 
 
 1.2.0 (2018-09-06)
