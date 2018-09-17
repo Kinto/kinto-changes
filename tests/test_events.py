@@ -132,3 +132,13 @@ class StatsdTest(BaseWebTest, unittest.TestCase):
         self.assertEqual(statsd.timer.call_args_list[0][0][0], 'plugins.kinto_changes')
         # Check that we're monitoring some calls.
         self.assertTrue(statsd_decorate.call_count >= 2)
+
+
+class DontMigrateTest(BaseWebTest, unittest.TestCase):
+    def test_migrate_does_nothing(self):
+        config = mock.MagicMock()
+        config.settings = {}
+        config.registry.command = 'migrate'
+
+        includeme(config)
+        self.assertNotIn('changes', config.capabilities)

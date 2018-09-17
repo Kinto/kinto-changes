@@ -24,6 +24,13 @@ def includeme(config):
     settings = config.get_settings()
     collections = settings.get('changes.resources', [])
 
+    # Don't do anything on a migration command.
+    # This is helpful because we try to get a snapshot of the database
+    # when the application is created. But if we're doing a migrate,
+    # there may not be a database.
+    if getattr(config.registry, 'command') == 'migrate':
+        return
+
     config.add_api_capability(
         "changes",
         version=__version__,
