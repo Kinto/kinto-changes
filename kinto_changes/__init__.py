@@ -28,7 +28,7 @@ def includeme(config):
     # This is helpful because we try to get a snapshot of the database
     # when the application is created. But if we're doing a migrate,
     # there may not be a database.
-    if config.registry.settings.get('command') == 'migrate':
+    if getattr(config.registry, 'command') == 'migrate':
         return
 
     config.add_api_capability(

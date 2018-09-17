@@ -138,7 +138,7 @@ class DontMigrateTest(BaseWebTest, unittest.TestCase):
     def test_migrate_does_nothing(self):
         config = mock.MagicMock()
         config.settings = {}
-        config.registry.settings = {'command': 'migrate'}
+        config.registry.command = 'migrate'
 
         includeme(config)
         self.assertNotIn('changes', config.capabilities)
