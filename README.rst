@@ -38,6 +38,16 @@ In the `Kinto <http://kinto.readthedocs.io/>`_ settings:
 The list of timestamps is available at ``GET /v1/buckets/monitor/collections/changes/records``.
 
 
+Cache Control
+'''''''''''''
+
+Like `cache control in Kinto collections <https://kinto.readthedocs.io/en/stable/api/1.x/collections.html#collection-caching>`_, it is possible to configure ``Cache-Control`` headers via some settings:
+
+.. code-block:: ini
+
+    kinto.monitor.changes.record_cache_expires_seconds = 60
+
+
 Advanced options
 ''''''''''''''''
 

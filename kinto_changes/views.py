@@ -8,7 +8,7 @@ from kinto.core import utils as core_utils
 from kinto.core.authorization import RouteFactory
 from kinto.core.storage.memory import extract_record_set
 from .utils import monitored_collections, changes_record
-from . import CHANGES_RECORDS_PATH
+from . import CHANGES_RECORDS_PATH, MONITOR_BUCKET, CHANGES_COLLECTION
 
 
 class ChangesModel(object):
@@ -87,3 +87,15 @@ class Changes(resource.ShareableResource):
     @property
     def timestamp(self):
         return self.model.timestamp()
+
+    def collection_get(self):
+        result = super().collection_get()
+        self._handle_cache_expires(self.request.response)
+        return result
+
+    def _handle_cache_expires(self, response):
+        setting = '{}.{}.record_cache_expires_seconds'.format(MONITOR_BUCKET, CHANGES_COLLECTION)
+        settings = self.request.registry.settings
+        cache_expires = settings.get(setting)
+        if cache_expires is not None:
+            response.cache_expires(seconds=int(cache_expires))

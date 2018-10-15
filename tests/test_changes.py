@@ -133,3 +133,17 @@ class UpdateChangesTest(BaseWebTest, unittest.TestCase):
                    "synchronisation.html#polling-for-remote-changes"
         }
         self.assertEqual(expected, capabilities['changes'])
+
+
+class CacheExpiresTest(BaseWebTest, unittest.TestCase):
+    changes_uri = '/buckets/monitor/collections/changes/records'
+
+    @classmethod
+    def get_app_settings(cls, extras=None):
+        settings = super().get_app_settings(extras)
+        settings["monitor.changes.record_cache_expires_seconds"] = "60"
+        return settings
+
+    def test_cache_expires_headers_are_supported(self):
+        resp = self.app.get(self.changes_uri)
+        assert "max-age=60" in resp.headers["Cache-Control"]

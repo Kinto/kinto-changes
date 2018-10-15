@@ -5,7 +5,9 @@ Changelog
 1.2.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**New feature**
+
+- Add ability to configure cache control headers (#47)
 
 
 1.2.1 (2018-09-17)
