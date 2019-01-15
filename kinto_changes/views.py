@@ -1,5 +1,5 @@
 import colander
-from pyramid.security import IAuthorizationPolicy, NO_PERMISSION_REQUIRED
+from pyramid.security import IAuthorizationPolicy
 from zope.interface import implementer
 
 from kinto.core import resource
