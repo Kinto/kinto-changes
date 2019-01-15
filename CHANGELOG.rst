@@ -2,10 +2,12 @@ Changelog
 =========
 
 
-1.3.1 (unreleased)
+2.0.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**Breaking changes**
+
+- Requires Kinto >= 12
 
 
 1.3.0 (2018-10-15)

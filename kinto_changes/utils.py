@@ -32,8 +32,7 @@ def monitored_collections(registry):
         resource_name, matchdict = core_utils.view_lookup_registry(registry, resource_uri)
         if resource_name == 'bucket':
             # Every collections in this bucket.
-            result, _ = storage.get_all(collection_id='collection',
-                                        parent_id=resource_uri)
+            result = storage.list_all(resource_name='collection', parent_id=resource_uri)
             collections.extend([(matchdict['id'], obj['id']) for obj in result])
 
         elif resource_name == 'collection':
@@ -42,8 +41,8 @@ def monitored_collections(registry):
     return collections
 
 
-def changes_record(request, bucket_id, collection_id, timestamp):
-    """Generate a record for /buckets/monitor/collections/changes."""
+def changes_object(request, bucket_id, collection_id, timestamp):
+    """Generate an object for /buckets/monitor/collections/changes."""
     http_host = request.registry.settings.get('http_host') or ''
     collection_uri = core_utils.instance_uri(
         request, 'collection', bucket_id=bucket_id, id=collection_id)

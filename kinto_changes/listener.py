@@ -2,7 +2,7 @@
 
 from kinto.core import utils as core_utils
 from kinto.core.events import notify_resource_event, ACTIONS
-from .utils import monitored_collections, changes_record, is_monitoring_collection
+from .utils import monitored_collections, changes_object, is_monitoring_collection
 
 
 class Listener(object):
@@ -20,8 +20,8 @@ class Listener(object):
                                                           'collection',
                                                           bucket_id=bucket_id,
                                                           id=collection_id)
-        return self.registry.storage.collection_timestamp(parent_id=collection_uri,
-                                                          collection_id='record')
+        return self.registry.storage.resource_timestamp(parent_id=collection_uri,
+                                                        resource_name='record')
 
     def on_record_changed(self, event):
         bucket_id = event.payload['bucket_id']
@@ -36,13 +36,13 @@ class Listener(object):
             old_timestamp = self.collection_timestamps.get((bucket_id, collection_id), None)
 
             # Synthesize event for /buckets/monitor/collections/changes record.
-            new = changes_record(event.request,
+            new = changes_object(event.request,
                                  bucket_id, collection_id, timestamp)
             old = None
             action = ACTIONS.CREATE
             if old_timestamp:
                 action = ACTIONS.UPDATE
-                old = changes_record(event.request,
+                old = changes_object(event.request,
                                      bucket_id, collection_id, old_timestamp)
 
             resource_data = {'bucket_id': 'monitor', 'collection_id': 'changes', 'id': new['id']}
