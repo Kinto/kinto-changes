@@ -5,7 +5,9 @@ Changelog
 1.3.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**Bug fixes**
+
+- Fix support of Kinto 12
 
 
 1.3.0 (2018-10-15)

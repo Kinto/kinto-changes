@@ -6,7 +6,12 @@ from zope.interface import implementer
 from kinto.core import resource
 from kinto.core import utils as core_utils
 from kinto.core.authorization import RouteFactory
-from kinto.core.storage.memory import extract_record_set
+try:
+    from kinto.core.storage.memory import extract_object_set
+except ImportError:  # pragma: no cover
+    # Kinto < 12
+    from kinto.core.storage.memory import extract_record_set as extract_object_set
+
 from .utils import monitored_collections, changes_record
 from . import CHANGES_RECORDS_PATH, MONITOR_BUCKET, CHANGES_COLLECTION
 
@@ -30,7 +35,7 @@ class ChangesModel(object):
 
     def get_records(self, filters=None, sorting=None, pagination_rules=None,
                     limit=None, include_deleted=False, parent_id=None):
-        return extract_record_set(self._entries(), filters=filters, sorting=sorting,
+        return extract_object_set(self._entries(), filters=filters, sorting=sorting,
                                   pagination_rules=pagination_rules,
                                   limit=limit)
 
