@@ -1,18 +1,13 @@
 import colander
-from pyramid.security import IAuthorizationPolicy
+from pyramid.security import IAuthorizationPolicy, NO_PERMISSION_REQUIRED
 from zope.interface import implementer
-
 
 from kinto.core import resource
 from kinto.core import utils as core_utils
 from kinto.core.authorization import RouteFactory
-try:
-    from kinto.core.storage.memory import extract_object_set
-except ImportError:  # pragma: no cover
-    # Kinto < 12
-    from kinto.core.storage.memory import extract_record_set as extract_object_set
+from kinto.core.storage.memory import extract_object_set
 
-from .utils import monitored_collections, changes_record
+from .utils import monitored_collections, changes_object
 from . import CHANGES_RECORDS_PATH, MONITOR_BUCKET, CHANGES_COLLECTION
 
 
@@ -33,11 +28,12 @@ class ChangesModel(object):
         max_value = max([e["last_modified"] for e in self._entries()])
         return max_value
 
-    def get_records(self, filters=None, sorting=None, pagination_rules=None,
+    def get_objects(self, filters=None, sorting=None, pagination_rules=None,
                     limit=None, include_deleted=False, parent_id=None):
-        return extract_object_set(self._entries(), filters=filters, sorting=sorting,
-                                  pagination_rules=pagination_rules,
-                                  limit=limit)
+        objs, _ = extract_object_set(objects=self._entries(), filters=filters, sorting=sorting,
+                                     pagination_rules=pagination_rules,
+                                     limit=limit)
+        return objs
 
     def _entries(self):
         if self.__entries is None:
@@ -48,12 +44,9 @@ class ChangesModel(object):
                                                          'collection',
                                                          bucket_id=bucket_id,
                                                          id=collection_id)
-                timestamp = self.storage.collection_timestamp(parent_id=collection_uri,
-                                                              collection_id='record')
-
-                entry = changes_record(self.request,
-                                       bucket_id, collection_id, timestamp)
-
+                timestamp = self.storage.resource_timestamp(parent_id=collection_uri,
+                                                            resource_name='record')
+                entry = changes_object(self.request, bucket_id, collection_id, timestamp)
                 self.__entries[entry[self.id_field]] = entry
 
         return self.__entries.values()
@@ -77,11 +70,11 @@ class AnonymousRoute(RouteFactory):
 
 @resource.register(name='changes',
                    description='List of changes',
-                   collection_path=CHANGES_RECORDS_PATH,
-                   record_path=None,
-                   collection_methods=('GET',),
+                   plural_path=CHANGES_RECORDS_PATH,
+                   object_path=None,
+                   plural_methods=('GET',),
                    factory=AnonymousRoute)
-class Changes(resource.ShareableResource):
+class Changes(resource.Resource):
 
     schema = ChangesSchema
 
@@ -93,8 +86,8 @@ class Changes(resource.ShareableResource):
     def timestamp(self):
         return self.model.timestamp()
 
-    def collection_get(self):
-        result = super().collection_get()
+    def plural_get(self):
+        result = super().plural_get()
         self._handle_cache_expires(self.request.response)
         return result
 

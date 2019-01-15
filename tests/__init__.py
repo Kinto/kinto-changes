@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-try:
-    import ConfigParser as configparser
-except ImportError:
-    import configparser
+import configparser
 
 from kinto import main as kinto_main
 from kinto.core.testing import get_user_headers, BaseWebTest as CoreWebTest

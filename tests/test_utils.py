@@ -3,7 +3,7 @@ import unittest
 
 from pyramid.request import Request
 
-from kinto_changes.utils import changes_record
+from kinto_changes.utils import changes_object
 
 
 class ChangesRecordTest(unittest.TestCase):
@@ -14,7 +14,7 @@ class ChangesRecordTest(unittest.TestCase):
         request.registry = mock.Mock()
         request.registry.settings = {}
         timestamp = 1525457597166
-        entry = changes_record(request, 'a', 'b', timestamp)
+        entry = changes_object(request, 'a', 'b', timestamp)
 
         self.assertEqual(entry, {
             "bucket": "a",
@@ -31,7 +31,7 @@ class ChangesRecordTest(unittest.TestCase):
         request.registry = mock.Mock()
         request.registry.settings = {'http_host': 'https://localhost:443'}
         timestamp = 1525457597166
-        entry = changes_record(request, 'a', 'b', timestamp)
+        entry = changes_object(request, 'a', 'b', timestamp)
 
         self.assertEqual(entry, {
             "bucket": "a",
