@@ -147,3 +147,7 @@ class CacheExpiresTest(BaseWebTest, unittest.TestCase):
     def test_cache_expires_headers_are_supported(self):
         resp = self.app.get(self.changes_uri)
         assert "max-age=60" in resp.headers["Cache-Control"]
+
+    def test_cache_expires_headers_are_not_sent_with_querystring(self):
+        resp = self.app.get(self.changes_uri + "?_since=0&_expected=42")
+        assert "max-age" not in resp.headers["Cache-Control"]

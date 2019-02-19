@@ -92,8 +92,17 @@ class Changes(resource.Resource):
         return result
 
     def _handle_cache_expires(self, response):
+        # If the client sends some querystring parameters or some concurrency-control headers
+        # then we do not send a specific cache control header.
+        # In production, we set monitor/changes TTL to 1 min and default TTL to 1 hour.
+        # With this code and the production config, the clients that don't send cache busting
+        # query params get fresh data (1min) and the clients that send quey params and headers
+        # are likely to get the cached response for the values they specified.
+        has_querystring = len(self.request.GET) > 0
+        has_etag_headers = (self.request.headers.get("If-None-Match") or
+                            self.request.headers.get("If-Match"))
         setting = '{}.{}.record_cache_expires_seconds'.format(MONITOR_BUCKET, CHANGES_COLLECTION)
-        settings = self.request.registry.settings
-        cache_expires = settings.get(setting)
-        if cache_expires is not None:
-            response.cache_expires(seconds=int(cache_expires))
+        if not has_querystring and not has_etag_headers:
+            cache_expires = self.request.registry.settings.get(setting)
+            if cache_expires is not None:
+                response.cache_expires(seconds=int(cache_expires))

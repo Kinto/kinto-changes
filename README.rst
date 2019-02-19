@@ -47,6 +47,10 @@ Like `cache control in Kinto collections <https://kinto.readthedocs.io/en/stable
 
     kinto.monitor.changes.record_cache_expires_seconds = 60
 
+.. important::
+
+    The ``Cache-Control`` header won't be sent if some querystring params or concurrency control request headers are sent.
+
 
 Advanced options
 ''''''''''''''''
