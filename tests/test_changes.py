@@ -77,6 +77,13 @@ class UpdateChangesTest(BaseWebTest, unittest.TestCase):
                      headers={'If-None-Match': before_timestamp},
                      status=304)
 
+    def test_no_cache_control_is_returned_if_not_configured(self):
+        resp = self.app.get(self.changes_uri)
+        assert "max-age" not in resp.headers["Cache-Control"]
+
+        resp = self.app.get(self.changes_uri + '?_expected="42"')
+        assert "max-age" not in resp.headers["Cache-Control"]
+
     def test_returns_empty_list_if_no_resource_configured(self):
         with mock.patch.dict(self.app.app.registry.settings,
                              [('changes.resources', '')]):
@@ -142,8 +149,28 @@ class CacheExpiresTest(BaseWebTest, unittest.TestCase):
     def get_app_settings(cls, extras=None):
         settings = super().get_app_settings(extras)
         settings["monitor.changes.record_cache_expires_seconds"] = "60"
+        settings["monitor.changes.record_cache_maximum_expires_seconds"] = "3600"
         return settings
 
     def test_cache_expires_headers_are_supported(self):
         resp = self.app.get(self.changes_uri)
+        assert "max-age=60" in resp.headers["Cache-Control"]
+
+    def test_cache_expires_header_is_maximum_with_cache_busting(self):
+        resp = self.app.get(self.changes_uri + "?_since=0&_expected=42")
+        assert "max-age=3600" in resp.headers["Cache-Control"]
+
+    def test_cache_expires_header_is_default_with_filter(self):
+        # The _since just filters on lower bound of timestamps, if data changes
+        # we don't want to cache for too long.
+        resp = self.app.get(self.changes_uri + "?_since=0")
+        assert "max-age=60" in resp.headers["Cache-Control"]
+
+    def test_cache_expires_header_is_default_with_concurrency_control(self):
+        # The `If-None-Match` header is just a way to obtain a 304 instead of a 200
+        # with an empty list. In the client code [0] it is always used in conjonction
+        # with _since={last-etag}
+        # [0] https://searchfox.org/mozilla-central/rev/93905b66/services/settings/Utils.jsm#70-73
+        headers = {"If-None-Match": '"42"'}
+        resp = self.app.get(self.changes_uri + '?_since="42"', headers=headers)
         assert "max-age=60" in resp.headers["Cache-Control"]

@@ -47,6 +47,13 @@ Like `cache control in Kinto collections <https://kinto.readthedocs.io/en/stable
 
     kinto.monitor.changes.record_cache_expires_seconds = 60
 
+If cache busting query parameters then responses can be cached more agressively.
+If the setting below is set then a different cache control expiration will be set:
+
+.. code-block:: ini
+
+    kinto.monitor.changes.record_cache_maximum_expires_seconds = 3600
+
 
 Advanced options
 ''''''''''''''''

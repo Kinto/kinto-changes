@@ -5,8 +5,9 @@ Changelog
 2.0.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**New feature**
 
+- Send ``Cache-Control`` headers if cache busting query parameters or concurrency control request headers are sent (#66)
 
 2.0.0 (2019-01-15)
 ------------------

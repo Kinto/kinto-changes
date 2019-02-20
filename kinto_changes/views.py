@@ -92,8 +92,15 @@ class Changes(resource.Resource):
         return result
 
     def _handle_cache_expires(self, response):
-        setting = '{}.{}.record_cache_expires_seconds'.format(MONITOR_BUCKET, CHANGES_COLLECTION)
+        # If the client sends cache busting query parameters, then we can cache more
+        # aggressively.
         settings = self.request.registry.settings
-        cache_expires = settings.get(setting)
+        prefix = f'{MONITOR_BUCKET}.{CHANGES_COLLECTION}.record_cache'
+        default_expires = settings.get(f'{prefix}_expires_seconds')
+        maximum_expires = settings.get(f'{prefix}_maximum_expires_seconds', default_expires)
+
+        has_cache_busting = "_expected" in self.request.GET
+        cache_expires = maximum_expires if has_cache_busting else default_expires
+
         if cache_expires is not None:
             response.cache_expires(seconds=int(cache_expires))
