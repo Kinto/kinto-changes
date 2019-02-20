@@ -7,7 +7,7 @@ Changelog
 
 **New feature**
 
-- Do not send ``Cache-Control`` headers if querystring or concurrency control request headers are sent (#66)
+- Send ``Cache-Control`` headers if cache busting query parameters or concurrency control request headers are sent (#66)
 
 2.0.0 (2019-01-15)
 ------------------
