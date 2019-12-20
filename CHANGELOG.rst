@@ -5,7 +5,9 @@ Changelog
 2.2.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**Bug fixes**
+
+- Use explicit resource timestamp from DB instead of event payload
 
 
 2.1.0 (2019-02-20)

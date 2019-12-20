@@ -26,7 +26,7 @@ class Listener(object):
     def on_record_changed(self, event):
         bucket_id = event.payload['bucket_id']
         collection_id = event.payload['collection_id']
-        timestamp = event.payload['timestamp']
+        timestamp = self.get_collection_timestamp(bucket_id, collection_id)
 
         if not is_monitoring_collection(self.registry, bucket_id, collection_id):
             return
@@ -36,14 +36,12 @@ class Listener(object):
             old_timestamp = self.collection_timestamps.get((bucket_id, collection_id), None)
 
             # Synthesize event for /buckets/monitor/collections/changes record.
-            new = changes_object(event.request,
-                                 bucket_id, collection_id, timestamp)
+            new = changes_object(event.request, bucket_id, collection_id, timestamp)
             old = None
             action = ACTIONS.CREATE
             if old_timestamp:
                 action = ACTIONS.UPDATE
-                old = changes_object(event.request,
-                                     bucket_id, collection_id, old_timestamp)
+                old = changes_object(event.request, bucket_id, collection_id, old_timestamp)
 
             resource_data = {'bucket_id': 'monitor', 'collection_id': 'changes', 'id': new['id']}
 
