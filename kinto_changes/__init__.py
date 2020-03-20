@@ -13,6 +13,7 @@ CHANGES_COLLECTION = 'changes'
 CHANGES_COLLECTION_PATH = '{}/collections/{}'.format(
     MONITOR_BUCKET_PATH, CHANGES_COLLECTION)
 CHANGES_RECORDS_PATH = '{}/records'.format(CHANGES_COLLECTION_PATH)
+CHANGESET_PATH = '/buckets/{bid}/collections/{cid}/changeset'
 
 
 def identity(f):
