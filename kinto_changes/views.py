@@ -178,7 +178,11 @@ def get_changeset(request):
     # Fetch current collection timestamp.
     timestamp = storage.resource_timestamp(resource_name="record", parent_id=collection_uri)
 
-    # XXX: Cache control headers.
+    # Cache control.
+    settings = request.registry.settings
+    cache_expires = settings.get(f"{bid}.{cid}.record_cache_expires_seconds")
+    if cache_expires is not None:
+        request.response.cache_expires(seconds=int(cache_expires))
 
     data = {
         "metadata": metadata,

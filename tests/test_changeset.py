@@ -16,6 +16,11 @@ class ChangesetViewTest(BaseWebTest, unittest.TestCase):
         super(ChangesetViewTest, self).setUp()
         self.app.post_json(self.records_uri, SAMPLE_RECORD,
                            headers=self.headers)
+    @classmethod
+    def get_app_settings(cls, extras=None):
+        settings = super().get_app_settings(extras)
+        settings["blocklists.certificates.record_cache_expires_seconds"] = 1234
+        return settings
 
     def test_changeset_is_accessible(self):
         resp = self.app.head(self.records_uri, headers=self.headers)
@@ -69,3 +74,7 @@ class ChangesetViewTest(BaseWebTest, unittest.TestCase):
 
     def test_extra_param_is_allowed(self):
         self.app.get(self.changeset_uri + "&_extra=abc", headers=self.headers)
+
+    def test_cache_control_headers_are_set(self):
+        resp = self.app.get(self.changeset_uri, headers=self.headers)
+        assert resp.headers['Cache-Control'] == 'max-age=1234'
