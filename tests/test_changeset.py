@@ -16,6 +16,7 @@ class ChangesetViewTest(BaseWebTest, unittest.TestCase):
         super(ChangesetViewTest, self).setUp()
         self.app.post_json(self.records_uri, SAMPLE_RECORD,
                            headers=self.headers)
+
     @classmethod
     def get_app_settings(cls, extras=None):
         settings = super().get_app_settings(extras)
@@ -28,13 +29,13 @@ class ChangesetViewTest(BaseWebTest, unittest.TestCase):
 
         resp = self.app.get(self.changeset_uri, headers=self.headers)
         data = resp.json["data"]
-        
+
         assert "metadata" in data
         assert "timestamp" in data
         assert "changes" in data
         assert data["metadata"]["id"] == "certificates"
         assert len(data["changes"]) == 1
-        assert data["changes"][0]["dev-edition"] == True
+        assert data["changes"][0]["dev-edition"] is True
         assert data["timestamp"] == etag
 
     def test_changeset_can_be_filtered(self):
@@ -42,10 +43,10 @@ class ChangesetViewTest(BaseWebTest, unittest.TestCase):
         before = resp.json["data"]["last_modified"]
         self.app.post_json(self.records_uri, {}, headers=self.headers)
 
-        resp =self.app.get(self.changeset_uri, headers=self.headers)
+        resp = self.app.get(self.changeset_uri, headers=self.headers)
         assert len(resp.json["data"]["changes"]) == 3
 
-        resp =self.app.get(self.changeset_uri + f'&_since="{before}"', headers=self.headers)
+        resp = self.app.get(self.changeset_uri + f'&_since="{before}"', headers=self.headers)
         assert len(resp.json["data"]["changes"]) == 1
 
     def test_changeset_is_not_publicly_accessible(self):

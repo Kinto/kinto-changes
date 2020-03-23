@@ -4,12 +4,12 @@ from pyramid.security import IAuthorizationPolicy
 from zope.interface import implementer
 
 import kinto.core
-from kinto.authorization import AuthorizationPolicy, RouteFactory
+from kinto.authorization import RouteFactory
 from kinto.core import resource
 from kinto.core import utils as core_utils
 from kinto.core.storage import Filter
 from kinto.core.storage.memory import extract_object_set
-from kinto.core.utils import instance_uri, prefixed_principals, COMPARISON
+from kinto.core.utils import instance_uri, COMPARISON
 
 from .utils import monitored_collections, changes_object
 from . import CHANGESET_PATH, CHANGES_RECORDS_PATH, MONITOR_BUCKET, CHANGES_COLLECTION
@@ -123,8 +123,9 @@ class ChangeSetRoute(RouteFactory):
         self.required_permission = "read"
 
 
-changeset = kinto.core.Service(name='collection-changeset', path=CHANGESET_PATH, factory=ChangeSetRoute)
-
+changeset = kinto.core.Service(name='collection-changeset',
+                               path=CHANGESET_PATH,
+                               factory=ChangeSetRoute)
 
 
 class QuotedTimestamp(colander.SchemaNode):
@@ -189,4 +190,4 @@ def get_changeset(request):
         "timestamp": f'"{timestamp}"',
         "changes": changes,
     }
-    return { "data": data }
+    return {"data": data}
