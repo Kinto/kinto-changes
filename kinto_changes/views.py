@@ -143,6 +143,7 @@ class QuotedTimestamp(colander.SchemaNode):
 
 class ChangeSetQuerystring(colander.MappingSchema):
     _since = QuotedTimestamp(missing=colander.drop)
+    _expected = colander.SchemaNode(colander.String())
 
 
 class ChangeSetSchema(colander.MappingSchema):

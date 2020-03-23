@@ -10,7 +10,7 @@ SAMPLE_RECORD = {'data': {'dev-edition': True}}
 class ChangesetViewTest(BaseWebTest, unittest.TestCase):
     changes_uri = '/buckets/monitor/collections/changes/records'
     records_uri = '/buckets/blocklists/collections/certificates/records'
-    changeset_uri = '/buckets/blocklists/collections/certificates/changeset'
+    changeset_uri = '/buckets/blocklists/collections/certificates/changeset?_expected=42'
 
     def setUp(self):
         super(ChangesetViewTest, self).setUp()
@@ -40,7 +40,7 @@ class ChangesetViewTest(BaseWebTest, unittest.TestCase):
         resp =self.app.get(self.changeset_uri, headers=self.headers)
         assert len(resp.json["data"]["changes"]) == 3
 
-        resp =self.app.get(self.changeset_uri + f'?_since="{before}"', headers=self.headers)
+        resp =self.app.get(self.changeset_uri + f'&_since="{before}"', headers=self.headers)
         assert len(resp.json["data"]["changes"]) == 1
 
     def test_changeset_is_not_publicly_accessible(self):
@@ -63,9 +63,9 @@ class ChangesetViewTest(BaseWebTest, unittest.TestCase):
         self.app.get(self.changeset_uri, status=200)
 
     def test_timestamp_is_validated(self):
-        self.app.get(self.changeset_uri + "?_since=abc", headers=self.headers, status=400)
-        self.app.get(self.changeset_uri + "?_since=42", headers=self.headers, status=400)
-        self.app.get(self.changeset_uri + '?_since="42"', headers=self.headers)
+        self.app.get(self.changeset_uri + "&_since=abc", headers=self.headers, status=400)
+        self.app.get(self.changeset_uri + "&_since=42", headers=self.headers, status=400)
+        self.app.get(self.changeset_uri + '&_since="42"', headers=self.headers)
 
     def test_extra_param_is_allowed(self):
-        self.app.get(self.changeset_uri + '?_expected="42"', headers=self.headers)
+        self.app.get(self.changeset_uri + "&_extra=abc", headers=self.headers)
