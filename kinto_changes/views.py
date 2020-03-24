@@ -112,13 +112,17 @@ class Changes(resource.Resource):
 
 @implementer(IAuthorizationPolicy)
 class ChangeSetRoute(RouteFactory):
+    """The changeset endpoint should have the same permissions as the collection
+    metadata.
 
+    The permission to read records is implicit when metadata are readable.
+    """
     def __init__(self, request):
         super().__init__(request)
-
         bid = request.matchdict["bid"]
         cid = request.matchdict["cid"]
         collection_uri = instance_uri(request, "collection", bucket_id=bid, id=cid)
+        # This route context will be the same as when reaching the collection URI.
         self.permission_object_id = collection_uri
         self.required_permission = "read"
 
