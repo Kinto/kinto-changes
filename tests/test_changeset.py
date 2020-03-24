@@ -27,7 +27,7 @@ class ChangesetViewTest(BaseWebTest, unittest.TestCase):
         etag = resp.headers["ETag"]
 
         resp = self.app.get(self.changeset_uri, headers=self.headers)
-        data = resp.json["data"]
+        data = resp.json
 
         assert "metadata" in data
         assert "timestamp" in data
@@ -43,10 +43,10 @@ class ChangesetViewTest(BaseWebTest, unittest.TestCase):
         self.app.post_json(self.records_uri, {}, headers=self.headers)
 
         resp = self.app.get(self.changeset_uri, headers=self.headers)
-        assert len(resp.json["data"]["changes"]) == 3
+        assert len(resp.json["changes"]) == 3
 
         resp = self.app.get(self.changeset_uri + f'&_since="{before}"', headers=self.headers)
-        assert len(resp.json["data"]["changes"]) == 1
+        assert len(resp.json["changes"]) == 1
 
     def test_changeset_is_not_publicly_accessible(self):
         # By default other users cannot read.

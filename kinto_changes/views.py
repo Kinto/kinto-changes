@@ -194,4 +194,4 @@ def get_changeset(request):
         "timestamp": f'"{timestamp}"',
         "changes": changes,
     }
-    return {"data": data}
+    return data
