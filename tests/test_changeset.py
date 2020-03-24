@@ -8,7 +8,6 @@ SAMPLE_RECORD = {'data': {'dev-edition': True}}
 
 
 class ChangesetViewTest(BaseWebTest, unittest.TestCase):
-    changes_uri = '/buckets/monitor/collections/changes/records'
     records_uri = '/buckets/blocklists/collections/certificates/records'
     changeset_uri = '/buckets/blocklists/collections/certificates/changeset?_expected=42'
 
@@ -72,6 +71,9 @@ class ChangesetViewTest(BaseWebTest, unittest.TestCase):
         self.app.get(self.changeset_uri + "&_since=abc", headers=self.headers, status=400)
         self.app.get(self.changeset_uri + "&_since=42", headers=self.headers, status=400)
         self.app.get(self.changeset_uri + '&_since="42"', headers=self.headers)
+
+    def test_expected_param_is_mandatory(self):
+        self.app.get(self.changeset_uri.split("?")[0], headers=self.headers, status=400)
 
     def test_extra_param_is_allowed(self):
         self.app.get(self.changeset_uri + "&_extra=abc", headers=self.headers)
