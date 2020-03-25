@@ -9,6 +9,7 @@ from kinto.core import resource
 from kinto.core import utils as core_utils
 from kinto.core.storage import Filter
 from kinto.core.storage.memory import extract_object_set
+from kinto.core.storage import exceptions as storage_exceptions
 from kinto.core.utils import instance_uri, COMPARISON
 
 from .utils import monitored_collections, changes_object
@@ -169,6 +170,8 @@ def get_changeset(request):
 
     storage = request.registry.storage
 
+    # We'll make sure that data isn't changed while we read metadata, changes, etc.
+    before = storage.resource_timestamp(resource_name="record", parent_id=collection_uri)
     # Fetch collection metadata.
     metadata = storage.get(resource_name="collection", parent_id=bucket_uri, object_id=cid)
     # Fetch list of changes.
@@ -182,6 +185,10 @@ def get_changeset(request):
     )
     # Fetch current collection timestamp.
     timestamp = storage.resource_timestamp(resource_name="record", parent_id=collection_uri)
+
+    # Do not serve inconsistent data.
+    if before != timestamp:  # pragma: no cover
+        raise storage_exceptions.IntegrityError(message="Inconsistent data. Retry.")
 
     # Cache control.
     settings = request.registry.settings
