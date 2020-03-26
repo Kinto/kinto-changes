@@ -41,7 +41,3 @@ class BaseWebTest(CoreWebTest):
         self.app.put_json(collection_uri,
                           {},
                           headers=self.headers)
-
-    def get_record_uri(self, bucket_id, collection_id, record_id):
-        return ('/buckets/{bucket_id}/collections/{collection_id}'
-                '/records/{record_id}').format(**locals())
