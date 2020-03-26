@@ -20,6 +20,7 @@ class ChangesModel(object):
     id_field = 'id'
     modified_field = 'last_modified'
     deleted_field = 'deleted'
+    permissions_field = "__permissions__"
 
     def __init__(self, request):
         self.request = request

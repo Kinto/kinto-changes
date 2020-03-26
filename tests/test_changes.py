@@ -77,6 +77,11 @@ class UpdateChangesTest(BaseWebTest, unittest.TestCase):
                      headers={'If-None-Match': before_timestamp},
                      status=304)
 
+    def test_returns_412_with_if_none_match_star(self):
+        self.app.get(self.changes_uri, headers={
+            "If-None-Match": "*"
+        }, status=412)
+
     def test_no_cache_control_is_returned_if_not_configured(self):
         resp = self.app.get(self.changes_uri)
         assert "max-age" not in resp.headers["Cache-Control"]
