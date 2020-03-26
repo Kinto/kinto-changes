@@ -1,6 +1,7 @@
 import hashlib
-import mock
 import unittest
+from unittest import mock
+
 from uuid import UUID
 
 from . import BaseWebTest

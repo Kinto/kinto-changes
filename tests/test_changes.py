@@ -1,5 +1,5 @@
-import mock
 import unittest
+from unittest import mock
 
 from kinto_changes import __version__ as changes_version
 from . import BaseWebTest
