@@ -35,8 +35,6 @@ In the `Kinto <http://kinto.readthedocs.io/>`_ settings:
     kinto.changes.resources = /buckets/settings
                               /buckets/blocklists/collections/certificates
 
-The list of timestamps is available at ``GET /v1/buckets/monitor/collections/changes/records``.
-
 
 Cache Control
 '''''''''''''
@@ -66,3 +64,22 @@ distinguish changes from several Kinto instances.
     kinto.changes.http_host = website.domain.tld
 
 By default, it will rely on the global setting ``kinto.http_host``.
+
+
+Endpoints
+---------
+
+* ``GET /v1/buckets/monitor/collections/changes/records``.
+
+Returns the list of timestamps.
+
+* ``GET /v1/buckets/{bid}/collections/{cid}/changeset?_expected={timestamp}``.
+
+Returns the following response for the collection:
+
+- ``changes``: list of records, optionnally filtered with ``?_since="{timestamp}"``
+- ``metadata``: collection attributes
+- ``timestamp``: records timestamp
+
+Note: the ``_expected={}`` querystring parameter is mandatory but can contain any
+arbitrary value (used for cache busting).
