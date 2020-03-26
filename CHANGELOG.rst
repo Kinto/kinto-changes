@@ -2,10 +2,16 @@ Changelog
 =========
 
 
-2.2.0 (unreleased)
+2.2.0 (2020-03-26)
 ------------------
 
-- Nothing changed yet.
+**New features**
+
+- Add changeset endpoint (#154)
+
+**Bug fixes**
+
+- Fix crash with ``If-None-Match: *`` (fixes #158)
 
 
 2.1.1 (2019-12-23)
