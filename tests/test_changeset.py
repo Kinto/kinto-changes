@@ -24,7 +24,7 @@ class ChangesetViewTest(BaseWebTest, unittest.TestCase):
 
     def test_changeset_is_accessible(self):
         resp = self.app.head(self.records_uri, headers=self.headers)
-        etag = resp.headers["ETag"]
+        records_timestamp = int(resp.headers["ETag"][1:-1])
 
         resp = self.app.get(self.changeset_uri, headers=self.headers)
         data = resp.json
@@ -35,7 +35,7 @@ class ChangesetViewTest(BaseWebTest, unittest.TestCase):
         assert data["metadata"]["id"] == "certificates"
         assert len(data["changes"]) == 1
         assert data["changes"][0]["dev-edition"] is True
-        assert data["timestamp"] == etag
+        assert data["timestamp"] == records_timestamp
 
     def test_changeset_can_be_filtered(self):
         resp = self.app.post_json(self.records_uri, {}, headers=self.headers)
