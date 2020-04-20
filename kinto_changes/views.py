@@ -199,7 +199,7 @@ def get_changeset(request):
 
     data = {
         "metadata": metadata,
-        "timestamp": f'"{timestamp}"',
+        "timestamp": timestamp,
         "changes": changes,
     }
     return data
