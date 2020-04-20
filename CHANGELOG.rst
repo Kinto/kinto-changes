@@ -1,10 +1,12 @@
 Changelog
 =========
 
-2.3.0 (unreleased)
+3.0.0 (2020-04-20)
 ------------------
 
-- Nothing changed yet.
+**Breaking changes**
+
+- Switch changeset timestamp from ETag to integer (#168)
 
 
 2.2.0 (2020-03-26)
