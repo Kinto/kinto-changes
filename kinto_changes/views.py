@@ -7,7 +7,7 @@ import kinto.core
 from kinto.authorization import RouteFactory
 from kinto.core import resource
 from kinto.core import utils as core_utils
-from kinto.core.storage import Filter
+from kinto.core.storage import Filter, Sort
 from kinto.core.storage.memory import extract_object_set
 from kinto.core.storage import exceptions as storage_exceptions
 from kinto.core.utils import instance_uri, COMPARISON
@@ -183,6 +183,7 @@ def get_changeset(request):
         id_field='id',
         modified_field='last_modified',
         deleted_field='deleted',
+        sorting=[Sort('last_modified', -1)]
     )
     # Fetch current collection timestamp.
     timestamp = storage.resource_timestamp(resource_name="record", parent_id=collection_uri)
