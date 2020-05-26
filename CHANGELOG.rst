@@ -1,7 +1,7 @@
 Changelog
 =========
 
-3.1.0 (unreleased)
+3.0.1 (2020-05-26)
 ------------------
 
 - Sort changes explicitly by `last_modified` descending
