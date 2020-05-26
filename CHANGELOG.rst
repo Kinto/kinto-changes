@@ -1,11 +1,10 @@
 Changelog
 =========
 
-i3.1.0 (unreleased)
--------------------
+3.1.0 (unreleased)
+------------------
 
-- Nothing changed yet.
-
+- Sort changes explicitly by `last_modified` descending
 
 3.0.0 (2020-04-20)
 ------------------
