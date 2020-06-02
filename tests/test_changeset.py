@@ -48,6 +48,17 @@ class ChangesetViewTest(BaseWebTest, unittest.TestCase):
         resp = self.app.get(self.changeset_uri + f'&_since="{before}"', headers=self.headers)
         assert len(resp.json["changes"]) == 1
 
+    def test_tombstones_are_returned(self):
+        resp = self.app.get(self.records_uri, headers=self.headers)
+        before = resp.headers["ETag"]
+        # Delete one record.
+        self.app.delete(self.records_uri + "?_limit=1", headers=self.headers)
+
+        resp = self.app.get(self.changeset_uri + f'&_since={before}', headers=self.headers)
+
+        assert len(resp.json["changes"]) == 1
+        assert "deleted" in resp.json["changes"][0]
+
     def test_changeset_is_not_publicly_accessible(self):
         # By default other users cannot read.
         user_headers = {

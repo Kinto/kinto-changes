@@ -4,7 +4,9 @@ Changelog
 3.1.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**Bug fixes**
+
+- Include tombstones in changeset endpoint (fixes #175)
 
 
 3.0.1 (2020-05-26)

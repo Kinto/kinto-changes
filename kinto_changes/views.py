@@ -183,7 +183,8 @@ def get_changeset(request):
         id_field='id',
         modified_field='last_modified',
         deleted_field='deleted',
-        sorting=[Sort('last_modified', -1)]
+        sorting=[Sort('last_modified', -1)],
+        include_deleted=(len(filters) > 0)
     )
     # Fetch current collection timestamp.
     timestamp = storage.resource_timestamp(resource_name="record", parent_id=collection_uri)
