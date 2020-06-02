@@ -166,8 +166,11 @@ def get_changeset(request):
 
     queryparams = request.validated["querystring"]
     filters = []
+    include_deleted = False
     if "_since" in queryparams:
         filters = [Filter('last_modified', queryparams["_since"], COMPARISON.GT)]
+        # Include tombstones when querying with _since
+        include_deleted = True
 
     storage = request.registry.storage
 
@@ -183,7 +186,8 @@ def get_changeset(request):
         id_field='id',
         modified_field='last_modified',
         deleted_field='deleted',
-        sorting=[Sort('last_modified', -1)]
+        sorting=[Sort('last_modified', -1)],
+        include_deleted=include_deleted
     )
     # Fetch current collection timestamp.
     timestamp = storage.resource_timestamp(resource_name="record", parent_id=collection_uri)
