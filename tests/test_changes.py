@@ -1,3 +1,4 @@
+import datetime
 import unittest
 from unittest import mock
 
@@ -176,6 +177,41 @@ class CacheExpiresTest(BaseWebTest, unittest.TestCase):
         # with an empty list. In the client code [0] it is always used in conjonction
         # with _since={last-etag}
         # [0] https://searchfox.org/mozilla-central/rev/93905b66/services/settings/Utils.jsm#70-73
-        headers = {"If-None-Match": '"42"'}
-        resp = self.app.get(self.changes_uri + '?_since="42"', headers=headers)
+        hour_ago = int(datetime.datetime.now().timestamp() * 1000) - 3600
+        headers = {"If-None-Match": f'"{hour_ago}"'}
+        resp = self.app.get(self.changes_uri + f'?_since="{hour_ago}"', headers=headers)
         assert "max-age=60" in resp.headers["Cache-Control"]
+
+
+class OldSinceRedirectTest(BaseWebTest, unittest.TestCase):
+    changes_uri = '/buckets/monitor/collections/changes/records'
+
+    @classmethod
+    def get_app_settings(cls, extras=None):
+        settings = super().get_app_settings(extras)
+        settings["since_max_age_days"] = "2"
+        return settings
+
+    def test_redirects_and_drops_since_if_too_old(self):
+        resp = self.app.get(self.changes_uri + "?_since=42")
+        self.assertEqual(resp.status_code, 307)
+        self.assertEqual(
+            resp.headers["Location"],
+            "http://www.kinto-storage.org"
+            "/v1/buckets/monitor/collections/changes/records"
+        )
+
+        # Try again with a real timestamp older than allowed in settings.
+        timestamp = int((datetime.datetime.now() - datetime.timedelta(days=3)).timestamp() * 1000)
+        resp = self.app.get(self.changes_uri + f"?_since={timestamp}")
+        self.assertEqual(resp.status_code, 307)
+
+    def test_redirects_keep_other_querystring_params(self):
+        resp = self.app.get(self.changes_uri + "?_since=42&_expected=%22123456%22")
+        self.assertEqual(resp.status_code, 307)
+        self.assertIn("/records?_expected=%22123456%22", resp.headers["Location"])
+
+    def test_does_not_redirect_if_not_old_enough(self):
+        timestamp = int((datetime.datetime.now() - datetime.timedelta(days=1)).timestamp() * 1000)
+        resp = self.app.get(self.changes_uri + f"?_since={timestamp}")
+        self.assertEqual(resp.status_code, 200)
