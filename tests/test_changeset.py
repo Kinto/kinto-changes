@@ -81,7 +81,9 @@ class ChangesetViewTest(BaseWebTest, unittest.TestCase):
     def test_timestamp_is_validated(self):
         self.app.get(self.changeset_uri + "&_since=abc", headers=self.headers, status=400)
         self.app.get(self.changeset_uri + "&_since=42", headers=self.headers, status=400)
+        self.app.get(self.changeset_uri + "&_since=*)(!(objectClass=*)", headers=self.headers, status=400)
         self.app.get(self.changeset_uri + '&_since="42"', headers=self.headers)
+
 
     def test_expected_param_is_mandatory(self):
         self.app.get(self.changeset_uri.split("?")[0], headers=self.headers, status=400)

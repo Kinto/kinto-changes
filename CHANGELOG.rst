@@ -4,7 +4,9 @@ Changelog
 3.1.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**Bug fixes**
+
+- Fix validation rule for ``_since`` query parameter
 
 
 3.0.2 (2020-06-02)
