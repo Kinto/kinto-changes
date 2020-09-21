@@ -97,3 +97,38 @@ class ChangesetViewTest(BaseWebTest, unittest.TestCase):
     def test_cache_control_headers_are_set(self):
         resp = self.app.get(self.changeset_uri, headers=self.headers)
         assert resp.headers['Cache-Control'] == 'max-age=1234'
+
+
+class MonitorChangesetViewTest(BaseWebTest, unittest.TestCase):
+    records_uri = '/buckets/blocklists/collections/certificates/records'
+    changeset_uri = '/buckets/monitor/collections/changes/changeset?_expected=42'
+
+    def setUp(self):
+        super().setUp()
+        self.app.post_json(self.records_uri, SAMPLE_RECORD, headers=self.headers)
+
+    @classmethod
+    def get_app_settings(cls, extras=None):
+        settings = super().get_app_settings(extras)
+        settings["kinto.changes.since_max_age_days"] = 1
+        return settings
+
+    def test_changeset_exists_for_monitor_changes(self):
+        resp = self.app.head(self.records_uri, headers=self.headers)
+        records_timestamp = int(resp.headers["ETag"].strip('"'))
+
+        resp = self.app.get(self.changeset_uri)
+        data = resp.json
+
+        assert data["timestamp"] == records_timestamp
+        assert len(data["changes"]) == 1
+        assert data["changes"][0]["collection"] == "certificates"
+
+    def test_changeset_redirects_if_since_is_too_old(self):
+        resp = self.app.get(self.changeset_uri + '&_since="42"')
+
+        assert resp.status_code == 307
+        assert resp.headers["Location"] == (
+            'https://www.kinto-storage.org/v1'
+            '/buckets/monitor/collections/changes/records?_expected=42'
+        )
