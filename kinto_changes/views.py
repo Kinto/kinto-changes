@@ -17,7 +17,8 @@ from kinto.core.storage import exceptions as storage_exceptions
 from kinto.core.utils import instance_uri, COMPARISON
 
 from .utils import monitored_collections, changes_object
-from . import CHANGESET_PATH, CHANGES_RECORDS_PATH, MONITOR_BUCKET, CHANGES_COLLECTION
+from . import (CHANGESET_PATH, CHANGES_RECORDS_PATH,
+               CHANGES_COLLECTION_PATH, MONITOR_BUCKET, CHANGES_COLLECTION)
 
 
 class ChangesModel(object):
@@ -187,6 +188,13 @@ class ChangeSetRoute(RouteFactory):
         self.permission_object_id = collection_uri
         self.required_permission = "read"
 
+    def check_permission(self, principals, bound_perms):
+        # The monitor/changes changeset endpoint is publicly accesible.
+        if self.permission_object_id == CHANGES_COLLECTION_PATH:
+            return True
+        # Otherwise rely on the collection permissions.
+        return super().check_permission(principals, bound_perms)
+
 
 changeset = kinto.core.Service(name='collection-changeset',
                                path=CHANGESET_PATH,
@@ -220,8 +228,8 @@ class ChangeSetSchema(colander.MappingSchema):
 def get_changeset(request):
     bid = request.matchdict["bid"]
     cid = request.matchdict["cid"]
-    bucket_uri = instance_uri(request, "bucket", id=bid)
-    collection_uri = instance_uri(request, "collection", bucket_id=bid, id=cid)
+
+    storage = request.registry.storage
 
     queryparams = request.validated["querystring"]
     filters = []
@@ -231,29 +239,40 @@ def get_changeset(request):
         # Include tombstones when querying with _since
         include_deleted = True
 
-    storage = request.registry.storage
+    if (bid, cid) == (MONITOR_BUCKET, CHANGES_COLLECTION):
+        model = ChangesModel(request)
 
-    # We'll make sure that data isn't changed while we read metadata, changes, etc.
-    before = storage.resource_timestamp(resource_name="record", parent_id=collection_uri)
-    # Fetch collection metadata.
-    metadata = storage.get(resource_name="collection", parent_id=bucket_uri, object_id=cid)
-    # Fetch list of changes.
-    changes = storage.list_all(
-        resource_name="record",
-        parent_id=collection_uri,
-        filters=filters,
-        id_field='id',
-        modified_field='last_modified',
-        deleted_field='deleted',
-        sorting=[Sort('last_modified', -1)],
-        include_deleted=include_deleted
-    )
-    # Fetch current collection timestamp.
-    timestamp = storage.resource_timestamp(resource_name="record", parent_id=collection_uri)
+        metadata = {}
+        timestamp = model.timestamp()
+        changes = model.get_objects(filters=filters, include_deleted=include_deleted)
+        # Redirect old since, on monitor/changes only.
+        _handle_old_since_redirect(request)
 
-    # Do not serve inconsistent data.
-    if before != timestamp:  # pragma: no cover
-        raise storage_exceptions.IntegrityError(message="Inconsistent data. Retry.")
+    else:
+        bucket_uri = instance_uri(request, "bucket", id=bid)
+        collection_uri = instance_uri(request, "collection", bucket_id=bid, id=cid)
+
+        # We'll make sure that data isn't changed while we read metadata, changes, etc.
+        before = storage.resource_timestamp(resource_name="record", parent_id=collection_uri)
+        # Fetch collection metadata.
+        metadata = storage.get(resource_name="collection", parent_id=bucket_uri, object_id=cid)
+        # Fetch list of changes.
+        changes = storage.list_all(
+            resource_name="record",
+            parent_id=collection_uri,
+            filters=filters,
+            id_field='id',
+            modified_field='last_modified',
+            deleted_field='deleted',
+            sorting=[Sort('last_modified', -1)],
+            include_deleted=include_deleted
+        )
+        # Fetch current collection timestamp.
+        timestamp = storage.resource_timestamp(resource_name="record", parent_id=collection_uri)
+
+        # Do not serve inconsistent data.
+        if before != timestamp:  # pragma: no cover
+            raise storage_exceptions.IntegrityError(message="Inconsistent data. Retry.")
 
     # Cache control.
     _handle_cache_expires(request, bid, cid)
