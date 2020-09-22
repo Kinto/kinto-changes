@@ -4,6 +4,11 @@ Changelog
 3.1.0 (unreleased)
 ------------------
 
+**New features**
+
+- Redirect clients whose ``?_since`` value is too old (21 days by default)
+- Add support for monitor/changes in changeset endpoints (fixes #173)
+
 **Bug fixes**
 
 - Fix validation rule for ``_since`` query parameter
