@@ -72,7 +72,7 @@ By default, it will rely on the global setting ``kinto.http_host``.
 When reaching the monitor/changes collection, if the provided ``_since`` query parameter
 is too old, we redirect the clients to the full list of changes (ie. without ``_since``).
 
-Set this setting to control the maximum age allowed:
+Set this setting to control the maximum age allowed. Set to ``-1`` to disable redirection.
 
 .. code-block :: ini
 

@@ -136,6 +136,10 @@ def _handle_old_since_redirect(request):
     """
     settings = request.registry.settings
     max_age_since = int(settings.get("changes.since_max_age_days", 21))
+    if max_age_since < 0:
+        # Redirect is disabled.
+        return
+
     min_since_dt = datetime.now() - timedelta(days=max_age_since)
     min_since = min_since_dt.timestamp() * 1000
 
