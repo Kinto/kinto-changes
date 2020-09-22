@@ -98,59 +98,61 @@ class Changes(resource.Resource):
 
     def plural_get(self):
         result = super().plural_get()
-        self._handle_old_since_redirect()
-        self._handle_cache_expires(self.request.response)
+        _handle_old_since_redirect(self.request)
+        _handle_cache_expires(self.request)
         return result
 
-    def _handle_old_since_redirect(self):
-        """
-        In order to limit the number of possible combinations
-        of `_since` and `_expected` querystring parameters,
-        and thus maximize the effect of caching, we redirect the clients
-        that arrive here with a very old `_since` value.
 
-        This simply means that these clients will have to iterate
-        and compare the local timestamps of the whole list of changes
-        instead of a filtered subset.
+def _handle_cache_expires(request):
+    # If the client sends cache busting query parameters, then we can cache more
+    # aggressively.
+    settings = request.registry.settings
+    prefix = f'{MONITOR_BUCKET}.{CHANGES_COLLECTION}.record_cache'
+    default_expires = settings.get(f'{prefix}_expires_seconds')
+    maximum_expires = settings.get(f'{prefix}_maximum_expires_seconds', default_expires)
 
-        https://searchfox.org/mozilla-central/rev/b58ca450/services/settings/remote-settings.js#299
+    has_cache_busting = "_expected" in request.GET
+    cache_expires = maximum_expires if has_cache_busting else default_expires
 
-        See https://bugzilla.mozilla.org/show_bug.cgi?id=1529685
-        and https://bugzilla.mozilla.org/show_bug.cgi?id=1665319#c2
-        """
-        settings = self.request.registry.settings
-        max_age_since = int(settings.get("since_max_age_days", 21))
-        min_since_dt = datetime.now() - timedelta(days=max_age_since)
-        min_since = min_since_dt.timestamp() * 1000
+    if cache_expires is not None:
+        request.response.cache_expires(seconds=int(cache_expires))
 
-        since = self.request.validated["querystring"].get("_since")
-        if since and int(since) < min_since:
-            redirect = self.request.route_path(
-                "record-plural",
-                bucket_id=MONITOR_BUCKET,
-                collection_id=CHANGES_COLLECTION
-            )
-            queryparams = {
-                k: self.request.GET[k]
-                for k in self.request.validated["querystring"] if k != "_since"
-            }
-            if queryparams:
-                redirect += ("?" + urlencode(queryparams))
-            raise httpexceptions.HTTPTemporaryRedirect(redirect)
 
-    def _handle_cache_expires(self, response):
-        # If the client sends cache busting query parameters, then we can cache more
-        # aggressively.
-        settings = self.request.registry.settings
-        prefix = f'{MONITOR_BUCKET}.{CHANGES_COLLECTION}.record_cache'
-        default_expires = settings.get(f'{prefix}_expires_seconds')
-        maximum_expires = settings.get(f'{prefix}_maximum_expires_seconds', default_expires)
+def _handle_old_since_redirect(request):
+    """
+    In order to limit the number of possible combinations
+    of `_since` and `_expected` querystring parameters,
+    and thus maximize the effect of caching, we redirect the clients
+    that arrive here with a very old `_since` value.
 
-        has_cache_busting = "_expected" in self.request.GET
-        cache_expires = maximum_expires if has_cache_busting else default_expires
+    This simply means that these clients will have to iterate
+    and compare the local timestamps of the whole list of changes
+    instead of a filtered subset.
 
-        if cache_expires is not None:
-            response.cache_expires(seconds=int(cache_expires))
+    https://searchfox.org/mozilla-central/rev/b58ca450/services/settings/remote-settings.js#299
+
+    See https://bugzilla.mozilla.org/show_bug.cgi?id=1529685
+    and https://bugzilla.mozilla.org/show_bug.cgi?id=1665319#c2
+    """
+    settings = request.registry.settings
+    max_age_since = int(settings.get("since_max_age_days", 21))
+    min_since_dt = datetime.now() - timedelta(days=max_age_since)
+    min_since = min_since_dt.timestamp() * 1000
+
+    since = request.validated["querystring"].get("_since")
+    if since and since < min_since:
+        redirect = request.route_path(
+            "record-plural",
+            bucket_id=MONITOR_BUCKET,
+            collection_id=CHANGES_COLLECTION
+        )
+        queryparams = {
+            k: request.GET[k]
+            for k in request.validated["querystring"] if k != "_since"
+        }
+        if queryparams:
+            redirect += "?" + urlencode(queryparams)
+        raise httpexceptions.HTTPTemporaryRedirect(redirect)
 
 
 @implementer(IAuthorizationPolicy)
