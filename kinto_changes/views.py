@@ -134,6 +134,10 @@ def _handle_old_since_redirect(request):
     See https://bugzilla.mozilla.org/show_bug.cgi?id=1529685
     and https://bugzilla.mozilla.org/show_bug.cgi?id=1665319#c2
     """
+    qs_since = request.validated["querystring"].get("_since")
+    if qs_since is None:
+        return
+
     settings = request.registry.settings
     max_age_since = int(settings.get("changes.since_max_age_days", 21))
     if max_age_since < 0:
@@ -143,25 +147,28 @@ def _handle_old_since_redirect(request):
     min_since_dt = datetime.now() - timedelta(days=max_age_since)
     min_since = min_since_dt.timestamp() * 1000
 
-    http_scheme = request.registry.settings.get("http_scheme") or "https"
-    http_host = request.registry.settings.get(
+    if qs_since >= min_since:
+        # Since value is recent. No redirect.
+        return
+
+    http_scheme = settings.get("http_scheme") or "https"
+    http_host = settings.get(
         "changes.http_host",
         request.registry.settings.get("http_host")
     )
-    redirect = f"{http_scheme}://{http_host}"
+    host_uri = f"{http_scheme}://{http_host}"
+    redirect = host_uri + request.route_path(
+        "record-plural",
+        bucket_id=MONITOR_BUCKET,
+        collection_id=CHANGES_COLLECTION
+    )
 
-    since = request.validated["querystring"].get("_since")
-    if since and since < min_since:
-        redirect += request.route_path(
-            "record-plural",
-            bucket_id=MONITOR_BUCKET,
-            collection_id=CHANGES_COLLECTION
-        )
-        queryparams = request.GET.copy()
-        del queryparams["_since"]
-        if queryparams:
-            redirect += "?" + urlencode(queryparams)
-        raise httpexceptions.HTTPTemporaryRedirect(redirect)
+    queryparams = request.GET.copy()
+    del queryparams["_since"]
+    if queryparams:
+        redirect += "?" + urlencode(queryparams)
+
+    raise httpexceptions.HTTPTemporaryRedirect(redirect)
 
 
 @implementer(IAuthorizationPolicy)

@@ -7,6 +7,7 @@ from . import BaseWebTest
 
 
 SAMPLE_RECORD = {'data': {'dev-edition': True}}
+HOUR_AGO = int(datetime.datetime.now().timestamp() * 1000) - 3600
 
 
 class UpdateChangesTest(BaseWebTest, unittest.TestCase):
@@ -163,13 +164,13 @@ class CacheExpiresTest(BaseWebTest, unittest.TestCase):
         assert "max-age=60" in resp.headers["Cache-Control"]
 
     def test_cache_expires_header_is_maximum_with_cache_busting(self):
-        resp = self.app.get(self.changes_uri + "?_since=0&_expected=42")
+        resp = self.app.get(self.changes_uri + f"?_since={HOUR_AGO}&_expected=42")
         assert "max-age=3600" in resp.headers["Cache-Control"]
 
     def test_cache_expires_header_is_default_with_filter(self):
         # The _since just filters on lower bound of timestamps, if data changes
         # we don't want to cache for too long.
-        resp = self.app.get(self.changes_uri + "?_since=0")
+        resp = self.app.get(self.changes_uri + f"?_since={HOUR_AGO}")
         assert "max-age=60" in resp.headers["Cache-Control"]
 
     def test_cache_expires_header_is_default_with_concurrency_control(self):
@@ -177,9 +178,8 @@ class CacheExpiresTest(BaseWebTest, unittest.TestCase):
         # with an empty list. In the client code [0] it is always used in conjonction
         # with _since={last-etag}
         # [0] https://searchfox.org/mozilla-central/rev/93905b66/services/settings/Utils.jsm#70-73
-        hour_ago = int(datetime.datetime.now().timestamp() * 1000) - 3600
-        headers = {"If-None-Match": f'"{hour_ago}"'}
-        resp = self.app.get(self.changes_uri + f'?_since="{hour_ago}"', headers=headers)
+        headers = {"If-None-Match": f'"{HOUR_AGO}"'}
+        resp = self.app.get(self.changes_uri + f'?_since="{HOUR_AGO}"', headers=headers)
         assert "max-age=60" in resp.headers["Cache-Control"]
 
 
