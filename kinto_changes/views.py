@@ -146,10 +146,8 @@ def _handle_old_since_redirect(request):
             bucket_id=MONITOR_BUCKET,
             collection_id=CHANGES_COLLECTION
         )
-        queryparams = {
-            k: request.GET[k]
-            for k in request.validated["querystring"] if k != "_since"
-        }
+        queryparams = request.GET.copy()
+        del queryparams["_since"]
         if queryparams:
             redirect += "?" + urlencode(queryparams)
         raise httpexceptions.HTTPTemporaryRedirect(redirect)
