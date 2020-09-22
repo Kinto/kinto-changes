@@ -189,7 +189,7 @@ class OldSinceRedirectTest(BaseWebTest, unittest.TestCase):
     @classmethod
     def get_app_settings(cls, extras=None):
         settings = super().get_app_settings(extras)
-        settings["since_max_age_days"] = "2"
+        settings["changes.since_max_age_days"] = "2"
         return settings
 
     def test_redirects_and_drops_since_if_too_old(self):

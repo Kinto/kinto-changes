@@ -135,7 +135,7 @@ def _handle_old_since_redirect(request):
     and https://bugzilla.mozilla.org/show_bug.cgi?id=1665319#c2
     """
     settings = request.registry.settings
-    max_age_since = int(settings.get("since_max_age_days", 21))
+    max_age_since = int(settings.get("changes.since_max_age_days", 21))
     min_since_dt = datetime.now() - timedelta(days=max_age_since)
     min_since = min_since_dt.timestamp() * 1000
 
