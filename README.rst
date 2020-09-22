@@ -55,6 +55,8 @@ If the setting below is set then a different cache control expiration will be se
 Advanced options
 ''''''''''''''''
 
+**host**
+
 The changes entries will have a ``host`` attribute, that can be used to
 distinguish changes from several Kinto instances.
 
@@ -63,6 +65,18 @@ distinguish changes from several Kinto instances.
     kinto.changes.http_host = website.domain.tld
 
 By default, it will rely on the global setting ``kinto.http_host``.
+
+
+**_since sanetizing**
+
+When reaching the monitor/changes collection, if the provided ``_since`` query parameter
+is too old, we redirect the clients to the full list of changes (ie. without ``_since``).
+
+Set this setting to control the maximum age allowed. Set to ``-1`` to disable redirection.
+
+.. code-block :: ini
+
+    kinto.changes.since_max_age_days = 21
 
 
 Endpoints
