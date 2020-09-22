@@ -99,15 +99,15 @@ class Changes(resource.Resource):
     def plural_get(self):
         result = super().plural_get()
         _handle_old_since_redirect(self.request)
-        _handle_cache_expires(self.request)
+        _handle_cache_expires(self.request, MONITOR_BUCKET, CHANGES_COLLECTION)
         return result
 
 
-def _handle_cache_expires(request):
+def _handle_cache_expires(request, bid, cid):
     # If the client sends cache busting query parameters, then we can cache more
     # aggressively.
     settings = request.registry.settings
-    prefix = f'{MONITOR_BUCKET}.{CHANGES_COLLECTION}.record_cache'
+    prefix = f'{bid}.{cid}.record_cache'
     default_expires = settings.get(f'{prefix}_expires_seconds')
     maximum_expires = settings.get(f'{prefix}_maximum_expires_seconds', default_expires)
 
@@ -240,10 +240,7 @@ def get_changeset(request):
         raise storage_exceptions.IntegrityError(message="Inconsistent data. Retry.")
 
     # Cache control.
-    settings = request.registry.settings
-    cache_expires = settings.get(f"{bid}.{cid}.record_cache_expires_seconds")
-    if cache_expires is not None:
-        request.response.cache_expires(seconds=int(cache_expires))
+    _handle_cache_expires(request, bid, cid)
 
     data = {
         "metadata": metadata,
