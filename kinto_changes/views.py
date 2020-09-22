@@ -139,9 +139,16 @@ def _handle_old_since_redirect(request):
     min_since_dt = datetime.now() - timedelta(days=max_age_since)
     min_since = min_since_dt.timestamp() * 1000
 
+    http_scheme = request.registry.settings.get("http_scheme") or "https"
+    http_host = request.registry.settings.get(
+        "changes.http_host",
+        request.registry.settings.get("http_host")
+    )
+    redirect = f"{http_scheme}://{http_host}"
+
     since = request.validated["querystring"].get("_since")
     if since and since < min_since:
-        redirect = request.route_path(
+        redirect += request.route_path(
             "record-plural",
             bucket_id=MONITOR_BUCKET,
             collection_id=CHANGES_COLLECTION

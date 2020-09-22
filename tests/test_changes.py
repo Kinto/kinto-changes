@@ -190,6 +190,7 @@ class OldSinceRedirectTest(BaseWebTest, unittest.TestCase):
     def get_app_settings(cls, extras=None):
         settings = super().get_app_settings(extras)
         settings["changes.since_max_age_days"] = "2"
+        settings["changes.http_host"] = "cdn-host"
         return settings
 
     def test_redirects_and_drops_since_if_too_old(self):
@@ -197,8 +198,7 @@ class OldSinceRedirectTest(BaseWebTest, unittest.TestCase):
         self.assertEqual(resp.status_code, 307)
         self.assertEqual(
             resp.headers["Location"],
-            "http://www.kinto-storage.org"
-            "/v1/buckets/monitor/collections/changes/records"
+            "https://cdn-host/v1/buckets/monitor/collections/changes/records"
         )
 
         # Try again with a real timestamp older than allowed in settings.
