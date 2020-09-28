@@ -4,7 +4,9 @@ Changelog
 3.2.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**Bug fixes**
+
+- Bypass storage when redirecting on old ``_since``
 
 
 3.1.0 (2020-09-22)
