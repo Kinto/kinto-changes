@@ -90,6 +90,9 @@ class Changes(resource.Resource):
     schema = ChangesSchema
 
     def __init__(self, request, context=None):
+        # Bypass call to storage if _since is too old.
+        _handle_old_since_redirect(request)
+
         super(Changes, self).__init__(request, context)
         self.model = ChangesModel(request)
 
@@ -99,7 +102,6 @@ class Changes(resource.Resource):
 
     def plural_get(self):
         result = super().plural_get()
-        _handle_old_since_redirect(self.request)
         _handle_cache_expires(self.request, MONITOR_BUCKET, CHANGES_COLLECTION)
         return result
 
@@ -135,8 +137,13 @@ def _handle_old_since_redirect(request):
     See https://bugzilla.mozilla.org/show_bug.cgi?id=1529685
     and https://bugzilla.mozilla.org/show_bug.cgi?id=1665319#c2
     """
-    qs_since = request.validated["querystring"].get("_since")
-    if qs_since is None:
+    try:
+        # request.validated is not populated yet (resource was not instantiated yet,
+        # we want to bypass storage).
+        qs_since_str = request.GET.get("_since", "")
+        qs_since = int(qs_since_str.strip('"'))
+    except (TypeError, ValueError):
+        # Will fail later during resource querystring validation.
         return
 
     settings = request.registry.settings
@@ -240,13 +247,13 @@ def get_changeset(request):
         include_deleted = True
 
     if (bid, cid) == (MONITOR_BUCKET, CHANGES_COLLECTION):
-        model = ChangesModel(request)
+        # Redirect old since, on monitor/changes only.
+        _handle_old_since_redirect(request)
 
+        model = ChangesModel(request)
         metadata = {}
         timestamp = model.timestamp()
         changes = model.get_objects(filters=filters, include_deleted=include_deleted)
-        # Redirect old since, on monitor/changes only.
-        _handle_old_since_redirect(request)
 
     else:
         bucket_uri = instance_uri(request, "bucket", id=bid)
