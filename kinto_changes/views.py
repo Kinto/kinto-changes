@@ -138,7 +138,7 @@ def _handle_old_since_redirect(request):
         # we want to bypass storage).
         qs_since_str = request.GET.get("_since", "")
         qs_since = int(qs_since_str.strip('"'))
-    except (TypeError, ValueError):
+    except ValueError:
         # Will fail later during resource querystring validation.
         return
 
