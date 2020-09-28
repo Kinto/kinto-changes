@@ -92,13 +92,9 @@ class Changes(resource.Resource):
     def __init__(self, request, context=None):
         # Bypass call to storage if _since is too old.
         _handle_old_since_redirect(request)
-
-        super(Changes, self).__init__(request, context)
+        # Inject custom model.
         self.model = ChangesModel(request)
-
-    @property
-    def timestamp(self):
-        return self.model.timestamp()
+        super(Changes, self).__init__(request, context)
 
     def plural_get(self):
         result = super().plural_get()
