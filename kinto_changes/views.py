@@ -255,10 +255,23 @@ def get_changeset(request):
         bucket_uri = instance_uri(request, "bucket", id=bid)
         collection_uri = instance_uri(request, "collection", bucket_id=bid, id=cid)
 
-        # We'll make sure that data isn't changed while we read metadata, changes, etc.
-        before = storage.resource_timestamp(resource_name="record", parent_id=collection_uri)
-        # Fetch collection metadata.
-        metadata = storage.get(resource_name="collection", parent_id=bucket_uri, object_id=cid)
+        try:
+            # We'll make sure that data isn't changed while we read metadata, changes, etc.
+            before = storage.resource_timestamp(resource_name="record", parent_id=collection_uri)
+            # Fetch collection metadata.
+            metadata = storage.get(resource_name="collection", parent_id=bucket_uri, object_id=cid)
+
+        except storage_exceptions.ObjectNotFoundError:
+            raise httpexceptions.HTTPNotFound()
+
+        except storage_exceptions.BackendError as e:
+            # The call to `resource_timestamp()` on an empty collection will try initialize it.
+            # If the instance is read-only, it fails with a backend error. Raise 404 in this
+            # case otherwise raise the original backend error.
+            if "when running in readonly" in str(e):
+                raise httpexceptions.HTTPNotFound()
+            raise
+
         # Fetch list of changes.
         changes = storage.list_all(
             resource_name="record",

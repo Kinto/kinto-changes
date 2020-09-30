@@ -4,7 +4,9 @@ Changelog
 3.2.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**Bug fixes**
+
+- Fix crash when collection is unknown and backend running in readonly mode
 
 
 3.1.1 (2020-09-28)
