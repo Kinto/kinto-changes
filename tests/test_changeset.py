@@ -1,7 +1,10 @@
 import unittest
+from unittest import mock
+
+from kinto.core.storage import exceptions as storage_exceptions
+from kinto.core.testing import get_user_headers
 
 from . import BaseWebTest
-from kinto.core.testing import get_user_headers
 
 
 SAMPLE_RECORD = {'data': {'dev-edition': True}}
@@ -78,6 +81,10 @@ class ChangesetViewTest(BaseWebTest, unittest.TestCase):
         self.app.get(self.changeset_uri, headers=user_headers, status=200)
         self.app.get(self.changeset_uri, status=200)
 
+    def test_changeset_returns_404_if_collection_is_unknown(self):
+        changeset_uri = '/buckets/blocklists/collections/fjuvrb/changeset?_expected=42'
+        self.app.get(changeset_uri, headers=self.headers, status=404)
+
     def test_timestamp_is_validated(self):
         self.app.get(self.changeset_uri + "&_since=abc", headers=self.headers, status=400)
         self.app.get(self.changeset_uri + "&_since=42", headers=self.headers, status=400)
@@ -97,6 +104,28 @@ class ChangesetViewTest(BaseWebTest, unittest.TestCase):
     def test_cache_control_headers_are_set(self):
         resp = self.app.get(self.changeset_uri, headers=self.headers)
         assert resp.headers['Cache-Control'] == 'max-age=1234'
+
+    def test_raises_original_backend_errors(self):
+        backend = self.app.app.registry.storage
+        with mock.patch.object(backend, "resource_timestamp") as mocked:
+            mocked.side_effect = storage_exceptions.BackendError
+            changeset_uri = '/buckets/blocklists/collections/certificates/changeset?_expected=42'
+            self.app.get(changeset_uri, headers=self.headers, status=503)
+
+
+class ReadonlyTest(BaseWebTest, unittest.TestCase):
+    changeset_uri = '/buckets/monitor/collections/changes/changeset?_expected=42'
+
+    def setUp(self):
+        super().setUp()
+        # Mark storage as readonly.
+        # We can't do it from test app settings because we need
+        # the initial bucket and collection).
+        self.app.app.registry.storage.readonly = True
+
+    def test_changeset_returns_404_if_collection_is_unknown(self):
+        changeset_uri = '/buckets/blocklists/collections/fjuvrb/changeset?_expected=42'
+        self.app.get(changeset_uri, headers=self.headers, status=404)
 
 
 class MonitorChangesetViewTest(BaseWebTest, unittest.TestCase):
