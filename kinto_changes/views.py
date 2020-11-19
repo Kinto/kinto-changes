@@ -221,6 +221,10 @@ class QuotedTimestamp(colander.SchemaNode):
 class ChangeSetQuerystring(colander.MappingSchema):
     _since = QuotedTimestamp(missing=colander.drop)
     _expected = colander.SchemaNode(colander.String())
+    _limit = colander.SchemaNode(colander.Integer(), missing=colander.drop)
+    # Query parameters used on monitor/changes endpoint.
+    bucket = colander.SchemaNode(colander.String(), missing=colander.drop)
+    collection = colander.SchemaNode(colander.String(), missing=colander.drop)
 
 
 class ChangeSetSchema(colander.MappingSchema):
@@ -235,6 +239,7 @@ def get_changeset(request):
     storage = request.registry.storage
 
     queryparams = request.validated["querystring"]
+    limit = queryparams.get("_limit")
     filters = []
     include_deleted = False
     if "_since" in queryparams:
@@ -246,10 +251,16 @@ def get_changeset(request):
         # Redirect old since, on monitor/changes only.
         _handle_old_since_redirect(request)
 
+        if "bucket" in queryparams:
+            filters.append(Filter("bucket", queryparams["bucket"], COMPARISON.EQ))
+
+        if "collection" in queryparams:
+            filters.append(Filter("collection", queryparams["collection"], COMPARISON.EQ))
+
         model = ChangesModel(request)
         metadata = {}
         timestamp = model.timestamp()
-        changes = model.get_objects(filters=filters, include_deleted=include_deleted)
+        changes = model.get_objects(filters=filters, limit=limit, include_deleted=include_deleted)
 
     else:
         bucket_uri = instance_uri(request, "bucket", id=bid)
@@ -277,6 +288,7 @@ def get_changeset(request):
             resource_name="record",
             parent_id=collection_uri,
             filters=filters,
+            limit=limit,
             id_field='id',
             modified_field='last_modified',
             deleted_field='deleted',

@@ -4,7 +4,9 @@ Changelog
 3.2.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**New features**
+
+- Add filtering support in monitor/changes changeset endpoint
 
 
 3.1.2 (2020-09-30)

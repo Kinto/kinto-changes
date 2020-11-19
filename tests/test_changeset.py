@@ -98,6 +98,12 @@ class ChangesetViewTest(BaseWebTest, unittest.TestCase):
     def test_expected_param_is_mandatory(self):
         self.app.get(self.changeset_uri.split("?")[0], headers=self.headers, status=400)
 
+    def test_limit_is_supported(self):
+        self.app.post_json(self.records_uri, {}, headers=self.headers)
+
+        resp = self.app.get(self.changeset_uri + "&_limit=1", headers=self.headers)
+        assert len(resp.json["changes"]) == 1
+
     def test_extra_param_is_allowed(self):
         self.app.get(self.changeset_uri + "&_extra=abc", headers=self.headers)
 
@@ -129,12 +135,22 @@ class ReadonlyTest(BaseWebTest, unittest.TestCase):
 
 
 class MonitorChangesetViewTest(BaseWebTest, unittest.TestCase):
-    records_uri = '/buckets/blocklists/collections/certificates/records'
+    records_uri = '/buckets/blocklists/collections/{cid}/records'
     changeset_uri = '/buckets/monitor/collections/changes/changeset?_expected=42'
 
     def setUp(self):
         super().setUp()
-        self.app.post_json(self.records_uri, SAMPLE_RECORD, headers=self.headers)
+        self.create_collection("blocklists", "cfr")
+        self.app.post_json(
+            self.records_uri.format(cid="cfr"),
+            SAMPLE_RECORD,
+            headers=self.headers
+        )
+        self.app.post_json(
+            self.records_uri.format(cid="certificates"),
+            SAMPLE_RECORD,
+            headers=self.headers
+        )
 
     @classmethod
     def get_app_settings(cls, extras=None):
@@ -143,14 +159,17 @@ class MonitorChangesetViewTest(BaseWebTest, unittest.TestCase):
         return settings
 
     def test_changeset_exists_for_monitor_changes(self):
-        resp = self.app.head(self.records_uri, headers=self.headers)
+        resp = self.app.head(
+            self.records_uri.format(cid="certificates"),
+            headers=self.headers
+        )
         records_timestamp = int(resp.headers["ETag"].strip('"'))
 
         resp = self.app.get(self.changeset_uri)
         data = resp.json
 
         assert data["timestamp"] == records_timestamp
-        assert len(data["changes"]) == 1
+        assert len(data["changes"]) == 2
         assert data["changes"][0]["collection"] == "certificates"
 
     def test_changeset_redirects_if_since_is_too_old(self):
@@ -161,3 +180,14 @@ class MonitorChangesetViewTest(BaseWebTest, unittest.TestCase):
             'https://www.kinto-storage.org/v1'
             '/buckets/monitor/collections/changes/records?_expected=42'
         )
+
+    def test_limit_is_supported(self):
+        resp = self.app.get(self.changeset_uri + "&_limit=1", headers=self.headers)
+        assert len(resp.json["changes"]) == 1
+
+    def test_filter_by_collection(self):
+        resp = self.app.get(
+            self.changeset_uri + "&bucket=blocklists&collection=cfr",
+            headers=self.headers
+        )
+        assert len(resp.json["changes"]) == 1
