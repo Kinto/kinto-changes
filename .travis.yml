@@ -1,8 +1,8 @@
 language: python
-python: 3.6
+python: 3.8
 sudo: false
 env:
-  - TOX_ENV=py36
+  - TOX_ENV=py38
   - TOX_ENV=flake8
 install: pip install -U tox
 script: tox -e $TOX_ENV
