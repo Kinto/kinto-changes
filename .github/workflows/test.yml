@@ -40,8 +40,14 @@ jobs:
         run: |
           source .venv/bin/activate
           pip install tox
+          pip install coveralls
 
       - name: Tox
         run: |
           source .venv/bin/activate
           tox -e ${{ matrix.toxenv }}
+
+      - name: Coveralls
+        run: |
+          source .venv/bin/activate
+          coveralls
