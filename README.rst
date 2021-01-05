@@ -1,8 +1,8 @@
 Kinto Changes
 =============
 
-.. image:: https://img.shields.io/travis/Kinto/kinto-changes.svg
-        :target: https://travis-ci.org/Kinto/kinto-changes
+.. image:: https://img.shields.io/github/workflow/status/Kinto/kinto-changes/test/master
+        :target: https://github.com/Kinto/kinto-changes/actions
 
 .. image:: https://img.shields.io/pypi/v/kinto-changes.svg
         :target: https://pypi.python.org/pypi/kinto-changes
