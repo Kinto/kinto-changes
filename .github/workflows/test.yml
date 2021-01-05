@@ -47,7 +47,7 @@ jobs:
           tox -e ${{ matrix.toxenv }}
 
       - name: Coveralls
-        uses: coverallsapp/github-action@master
+        uses: AndreMiras/coveralls-python-action@develop
         if: matrix.toxenv != 'flake8'
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
