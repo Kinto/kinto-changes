@@ -40,7 +40,6 @@ jobs:
         run: |
           source .venv/bin/activate
           pip install tox
-          pip install coveralls
 
       - name: Tox
         run: |
@@ -48,6 +47,6 @@ jobs:
           tox -e ${{ matrix.toxenv }}
 
       - name: Coveralls
-        run: |
-          source .venv/bin/activate
-          coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
