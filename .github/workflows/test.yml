@@ -51,4 +51,3 @@ jobs:
         if: matrix.toxenv != 'flake8'
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: .coverage
