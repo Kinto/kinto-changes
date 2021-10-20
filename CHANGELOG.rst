@@ -4,7 +4,9 @@ Changelog
 3.3.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**Breaking Changes**
+
+- No ``ResourceEvent`` is sent anymore for changes in this virtual monitor/changes collection.
 
 
 3.2.0 (2020-11-20)

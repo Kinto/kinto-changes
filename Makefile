@@ -19,7 +19,7 @@ $(TOX): virtualenv
 	$(VENV)/bin/pip install tox
 
 tests-once: tox
-	$(VENV)/bin/tox -e py36
+	$(VENV)/bin/tox -e py38
 
 tests: tox
 	$(VENV)/bin/tox
