@@ -1,7 +1,7 @@
 Changelog
 =========
 
-3.3.0 (unreleased)
+4.0.0 (2021-10-21)
 ------------------
 
 **Breaking Changes**
