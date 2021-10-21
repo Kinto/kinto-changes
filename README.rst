@@ -1,7 +1,7 @@
 Kinto Changes
 =============
 
-.. image:: https://img.shields.io/github/workflow/status/Kinto/kinto-changes/test/master
+.. image:: https://github.com/Kinto/kinto-changes/actions/workflows/test.yml/badge.svg
         :target: https://github.com/Kinto/kinto-changes/actions
 
 .. image:: https://img.shields.io/pypi/v/kinto-changes.svg
