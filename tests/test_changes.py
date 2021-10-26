@@ -215,3 +215,10 @@ class OldSinceRedirectTest(BaseWebTest, unittest.TestCase):
         timestamp = int((datetime.datetime.now() - datetime.timedelta(days=1)).timestamp() * 1000)
         resp = self.app.get(self.changes_uri + f"?_since={timestamp}")
         self.assertEqual(resp.status_code, 200)
+
+    def test_redirects_sends_cache_control(self):
+        response = self.app.get(self.changes_uri + "?_since=42")
+        self.assertEqual(response.status_code, 307)
+        self.assertIn("Expires", response.headers)
+        self.assertIn("Cache-Control", response.headers)
+        self.assertEqual(response.headers["Cache-Control"], "max-age=86400")

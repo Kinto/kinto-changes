@@ -78,6 +78,12 @@ Set this setting to control the maximum age allowed. Set to ``-1`` to disable re
 
     kinto.changes.since_max_age_days = 21
 
+Redirects are cached by default. Set to ``-1`` to disable, or ``0`` to cache forever.
+
+.. code-block :: ini
+
+    kinto.changes.since_max_age_redirect_ttl_seconds = 86400
+
 
 Endpoints
 ---------

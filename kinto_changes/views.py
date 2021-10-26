@@ -172,7 +172,15 @@ def _handle_old_since_redirect(request):
     if queryparams:
         redirect += "?" + urlencode(queryparams)
 
-    raise httpexceptions.HTTPTemporaryRedirect(redirect)
+    # Serve a redirection, with optional cache control headers.
+    response = httpexceptions.HTTPTemporaryRedirect(redirect)
+    cache_seconds = int(settings.get(
+        "changes.since_max_age_redirect_ttl_seconds",
+        86400
+    ))
+    if cache_seconds >= 0:
+        response.cache_expires(cache_seconds)
+    raise response
 
 
 @implementer(IAuthorizationPolicy)
