@@ -176,7 +176,7 @@ def _handle_old_since_redirect(request):
     response = httpexceptions.HTTPTemporaryRedirect(redirect)
     cache_seconds = int(settings.get(
         "changes.since_max_age_redirect_ttl_seconds",
-        86400
+        60 * 60 * 24
     ))
     if cache_seconds >= 0:
         response.cache_expires(cache_seconds)
