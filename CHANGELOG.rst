@@ -4,7 +4,9 @@ Changelog
 4.0.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**New features**
+
+- Send cache control headers on old ``?_since`` redirects (cache for 1 day by default).
 
 
 4.0.0 (2021-10-21)
