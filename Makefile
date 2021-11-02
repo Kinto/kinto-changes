@@ -3,6 +3,7 @@ VENV := $(shell echo $${VIRTUAL_ENV-.venv})
 PYTHON = $(VENV)/bin/python
 TOX = $(VENV)/bin/tox
 TEMPDIR := $(shell mktemp -du)
+NAME=kinto_changes
 
 build-requirements:
 	$(VIRTUALENV) $(TEMPDIR)
@@ -23,3 +24,7 @@ tests-once: tox
 
 tests: tox
 	$(VENV)/bin/tox
+
+format:
+	isort --profile=black --lines-after-imports=2 tests $(NAME)
+	black tests $(NAME)
