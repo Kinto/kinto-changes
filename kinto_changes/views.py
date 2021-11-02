@@ -1,30 +1,34 @@
-from urllib.parse import urlencode
 from datetime import datetime, timedelta
+from urllib.parse import urlencode
 
 import colander
-from cornice.validators import colander_validator
-from pyramid import httpexceptions
-from pyramid.security import IAuthorizationPolicy
-from zope.interface import implementer
-
 import kinto.core
+from cornice.validators import colander_validator
 from kinto.authorization import RouteFactory
 from kinto.core import resource
 from kinto.core import utils as core_utils
 from kinto.core.storage import Filter, Sort
-from kinto.core.storage.memory import extract_object_set
 from kinto.core.storage import exceptions as storage_exceptions
-from kinto.core.utils import instance_uri, COMPARISON
+from kinto.core.storage.memory import extract_object_set
+from kinto.core.utils import COMPARISON, instance_uri
+from pyramid import httpexceptions
+from pyramid.security import IAuthorizationPolicy
+from zope.interface import implementer
 
-from .utils import monitored_collections, changes_object
-from . import (CHANGESET_PATH, CHANGES_RECORDS_PATH,
-               CHANGES_COLLECTION_PATH, MONITOR_BUCKET, CHANGES_COLLECTION)
+from . import (
+    CHANGES_COLLECTION,
+    CHANGES_COLLECTION_PATH,
+    CHANGES_RECORDS_PATH,
+    CHANGESET_PATH,
+    MONITOR_BUCKET,
+)
+from .utils import changes_object, monitored_collections
 
 
 class ChangesModel(object):
-    id_field = 'id'
-    modified_field = 'last_modified'
-    deleted_field = 'deleted'
+    id_field = "id"
+    modified_field = "last_modified"
+    deleted_field = "deleted"
     permissions_field = "__permissions__"
 
     def __init__(self, request):
@@ -39,25 +43,40 @@ class ChangesModel(object):
         max_value = max([e["last_modified"] for e in self._entries()])
         return max_value
 
-    def get_objects(self, filters=None, sorting=None, pagination_rules=None,
-                    limit=None, include_deleted=False, parent_id=None):
-        objs, _ = extract_object_set(objects=self._entries(), filters=filters, sorting=sorting,
-                                     pagination_rules=pagination_rules,
-                                     limit=limit)
+    def get_objects(
+        self,
+        filters=None,
+        sorting=None,
+        pagination_rules=None,
+        limit=None,
+        include_deleted=False,
+        parent_id=None,
+    ):
+        objs, _ = extract_object_set(
+            objects=self._entries(),
+            filters=filters,
+            sorting=sorting,
+            pagination_rules=pagination_rules,
+            limit=limit,
+        )
         return objs
 
     def _entries(self):
         if self.__entries is None:
             self.__entries = {}
 
-            for (bucket_id, collection_id) in monitored_collections(self.request.registry):
-                collection_uri = core_utils.instance_uri(self.request,
-                                                         'collection',
-                                                         bucket_id=bucket_id,
-                                                         id=collection_id)
-                timestamp = self.storage.resource_timestamp(parent_id=collection_uri,
-                                                            resource_name='record')
-                entry = changes_object(self.request, bucket_id, collection_id, timestamp)
+            for (bucket_id, collection_id) in monitored_collections(
+                self.request.registry
+            ):
+                collection_uri = core_utils.instance_uri(
+                    self.request, "collection", bucket_id=bucket_id, id=collection_id
+                )
+                timestamp = self.storage.resource_timestamp(
+                    parent_id=collection_uri, resource_name="record"
+                )
+                entry = changes_object(
+                    self.request, bucket_id, collection_id, timestamp
+                )
                 self.__entries[entry[self.id_field]] = entry
 
         return self.__entries.values()
@@ -79,12 +98,14 @@ class AnonymousRoute(RouteFactory):
         return True
 
 
-@resource.register(name='changes',
-                   description='List of changes',
-                   plural_path=CHANGES_RECORDS_PATH,
-                   object_path=None,
-                   plural_methods=('GET',),
-                   factory=AnonymousRoute)
+@resource.register(
+    name="changes",
+    description="List of changes",
+    plural_path=CHANGES_RECORDS_PATH,
+    object_path=None,
+    plural_methods=("GET",),
+    factory=AnonymousRoute,
+)
 class Changes(resource.Resource):
 
     schema = ChangesSchema
@@ -106,9 +127,9 @@ def _handle_cache_expires(request, bid, cid):
     # If the client sends cache busting query parameters, then we can cache more
     # aggressively.
     settings = request.registry.settings
-    prefix = f'{bid}.{cid}.record_cache'
-    default_expires = settings.get(f'{prefix}_expires_seconds')
-    maximum_expires = settings.get(f'{prefix}_maximum_expires_seconds', default_expires)
+    prefix = f"{bid}.{cid}.record_cache"
+    default_expires = settings.get(f"{prefix}_expires_seconds")
+    maximum_expires = settings.get(f"{prefix}_maximum_expires_seconds", default_expires)
 
     has_cache_busting = "_expected" in request.GET
     cache_expires = maximum_expires if has_cache_busting else default_expires
@@ -157,14 +178,11 @@ def _handle_old_since_redirect(request):
 
     http_scheme = settings.get("http_scheme") or "https"
     http_host = settings.get(
-        "changes.http_host",
-        request.registry.settings.get("http_host")
+        "changes.http_host", request.registry.settings.get("http_host")
     )
     host_uri = f"{http_scheme}://{http_host}"
     redirect = host_uri + request.route_path(
-        "record-plural",
-        bucket_id=MONITOR_BUCKET,
-        collection_id=CHANGES_COLLECTION
+        "record-plural", bucket_id=MONITOR_BUCKET, collection_id=CHANGES_COLLECTION
     )
 
     queryparams = request.GET.copy()
@@ -174,10 +192,9 @@ def _handle_old_since_redirect(request):
 
     # Serve a redirection, with optional cache control headers.
     response = httpexceptions.HTTPTemporaryRedirect(redirect)
-    cache_seconds = int(settings.get(
-        "changes.since_max_age_redirect_ttl_seconds",
-        60 * 60 * 24
-    ))
+    cache_seconds = int(
+        settings.get("changes.since_max_age_redirect_ttl_seconds", 60 * 60 * 24)
+    )
     if cache_seconds >= 0:
         response.cache_expires(cache_seconds)
     raise response
@@ -190,6 +207,7 @@ class ChangeSetRoute(RouteFactory):
 
     The permission to read records is implicit when metadata are readable.
     """
+
     def __init__(self, request):
         super().__init__(request)
         bid = request.matchdict["bid"]
@@ -207,9 +225,9 @@ class ChangeSetRoute(RouteFactory):
         return super().check_permission(principals, bound_perms)
 
 
-changeset = kinto.core.Service(name='collection-changeset',
-                               path=CHANGESET_PATH,
-                               factory=ChangeSetRoute)
+changeset = kinto.core.Service(
+    name="collection-changeset", path=CHANGESET_PATH, factory=ChangeSetRoute
+)
 
 
 class QuotedTimestamp(colander.SchemaNode):
@@ -239,7 +257,9 @@ class ChangeSetSchema(colander.MappingSchema):
     querystring = ChangeSetQuerystring()
 
 
-@changeset.get(schema=ChangeSetSchema(), permission="read", validators=(colander_validator,))
+@changeset.get(
+    schema=ChangeSetSchema(), permission="read", validators=(colander_validator,)
+)
 def get_changeset(request):
     bid = request.matchdict["bid"]
     cid = request.matchdict["cid"]
@@ -251,7 +271,7 @@ def get_changeset(request):
     filters = []
     include_deleted = False
     if "_since" in queryparams:
-        filters = [Filter('last_modified', queryparams["_since"], COMPARISON.GT)]
+        filters = [Filter("last_modified", queryparams["_since"], COMPARISON.GT)]
         # Include tombstones when querying with _since
         include_deleted = True
 
@@ -263,12 +283,16 @@ def get_changeset(request):
             filters.append(Filter("bucket", queryparams["bucket"], COMPARISON.EQ))
 
         if "collection" in queryparams:
-            filters.append(Filter("collection", queryparams["collection"], COMPARISON.EQ))
+            filters.append(
+                Filter("collection", queryparams["collection"], COMPARISON.EQ)
+            )
 
         model = ChangesModel(request)
         metadata = {}
         timestamp = model.timestamp()
-        changes = model.get_objects(filters=filters, limit=limit, include_deleted=include_deleted)
+        changes = model.get_objects(
+            filters=filters, limit=limit, include_deleted=include_deleted
+        )
 
     else:
         bucket_uri = instance_uri(request, "bucket", id=bid)
@@ -276,9 +300,13 @@ def get_changeset(request):
 
         try:
             # We'll make sure that data isn't changed while we read metadata, changes, etc.
-            before = storage.resource_timestamp(resource_name="record", parent_id=collection_uri)
+            before = storage.resource_timestamp(
+                resource_name="record", parent_id=collection_uri
+            )
             # Fetch collection metadata.
-            metadata = storage.get(resource_name="collection", parent_id=bucket_uri, object_id=cid)
+            metadata = storage.get(
+                resource_name="collection", parent_id=bucket_uri, object_id=cid
+            )
 
         except storage_exceptions.ObjectNotFoundError:
             raise httpexceptions.HTTPNotFound()
@@ -297,14 +325,16 @@ def get_changeset(request):
             parent_id=collection_uri,
             filters=filters,
             limit=limit,
-            id_field='id',
-            modified_field='last_modified',
-            deleted_field='deleted',
-            sorting=[Sort('last_modified', -1)],
-            include_deleted=include_deleted
+            id_field="id",
+            modified_field="last_modified",
+            deleted_field="deleted",
+            sorting=[Sort("last_modified", -1)],
+            include_deleted=include_deleted,
         )
         # Fetch current collection timestamp.
-        timestamp = storage.resource_timestamp(resource_name="record", parent_id=collection_uri)
+        timestamp = storage.resource_timestamp(
+            resource_name="record", parent_id=collection_uri
+        )
 
         # Do not serve inconsistent data.
         if before != timestamp:  # pragma: no cover
