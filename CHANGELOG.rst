@@ -4,7 +4,9 @@ Changelog
 4.1.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**Bug fixes**
+
+- Fix crash when quoted timestamp contains new-line (fixes #293)
 
 
 4.1.0 (2021-10-28)

@@ -129,6 +129,10 @@ class ChangesetViewTest(BaseWebTest, unittest.TestCase):
             )
             self.app.get(changeset_uri, headers=self.headers, status=503)
 
+    def test_since_param_cannot_contain_newline(self):
+        invalid_param = self.changeset_uri + "&_since=\"1572620201554\"\n"
+        self.app.get(invalid_param, headers=self.headers, status=400)
+
 
 class ReadonlyTest(BaseWebTest, unittest.TestCase):
     changeset_uri = "/buckets/monitor/collections/changes/changeset?_expected=42"
