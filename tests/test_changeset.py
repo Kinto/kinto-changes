@@ -186,7 +186,7 @@ class MonitorChangesetViewTest(BaseWebTest, unittest.TestCase):
         assert resp.status_code == 307
         assert resp.headers["Location"] == (
             "https://www.kinto-storage.org/v1"
-            "/buckets/monitor/collections/changes/records?_expected=42"
+            "/buckets/monitor/collections/changes/changeset?_expected=42"
         )
 
     def test_limit_is_supported(self):
