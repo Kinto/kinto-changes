@@ -26,7 +26,7 @@ test_requirements = [
 
 setup(
     name='kinto-changes',
-    version='4.1.1',
+    version='4.1.2.dev0',
     description="Plug Kinto notifications to a collection endpoint.",
     long_description=readme + '\n\n' + history,
     author='Mozilla Services',
