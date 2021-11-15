@@ -4,7 +4,9 @@ Changelog
 4.1.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+**Bug fixes**
+
+- Fix redirection for old ``?_since`` values on changeset endpoints (fixes #299)
 
 
 4.1.0 (2021-10-28)

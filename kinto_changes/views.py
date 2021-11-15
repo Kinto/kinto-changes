@@ -181,9 +181,7 @@ def _handle_old_since_redirect(request):
         "changes.http_host", request.registry.settings.get("http_host")
     )
     host_uri = f"{http_scheme}://{http_host}"
-    redirect = host_uri + request.route_path(
-        "record-plural", bucket_id=MONITOR_BUCKET, collection_id=CHANGES_COLLECTION
-    )
+    redirect = host_uri + request.matched_route.generate(request.matchdict)
 
     queryparams = request.GET.copy()
     del queryparams["_since"]
